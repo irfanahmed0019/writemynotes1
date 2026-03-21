@@ -159,19 +159,19 @@ export default function Chat() {
       </div>
 
       {/* Input — raised and larger */}
-      <div className="shrink-0 border-t border-border bg-background px-4 pt-3 pb-6">
+      <div className="shrink-0 border-t border-border bg-background px-4 pt-4 pb-10">
         <div className="flex items-center gap-2.5">
           <input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 h-12 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+            className="flex-1 h-14 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
           />
           <button
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
-            className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center active:scale-[0.95] transition-transform disabled:opacity-50"
+            className="w-14 h-14 rounded-xl bg-primary text-primary-foreground flex items-center justify-center active:scale-[0.95] transition-transform disabled:opacity-50"
           >
             <Send className="w-5 h-5" />
           </button>
