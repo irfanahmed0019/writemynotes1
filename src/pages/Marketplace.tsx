@@ -34,7 +34,7 @@ export default function Marketplace() {
     const fetchRequests = async () => {
       const { data } = await supabase
         .from('requests')
-        .select('*, profiles!requests_user_id_fkey(full_name, avatar_url)')
+        .select('*, profiles!requests_user_id_profiles_fkey(full_name, avatar_url)')
         .eq('status', 'open')
         .order('created_at', { ascending: false });
       if (data) setRequests(data as any);
