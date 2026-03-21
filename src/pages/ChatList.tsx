@@ -16,6 +16,7 @@ type Conversation = {
   request_title: string;
   last_message?: string;
   last_message_at?: string;
+  unread_count: number;
 };
 
 export default function ChatList() {
@@ -39,10 +40,11 @@ export default function ChatList() {
         convos.map(async (c) => {
           const otherId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
           
-          const [profileRes, requestRes, msgRes] = await Promise.all([
+          const [profileRes, requestRes, msgRes, unreadRes] = await Promise.all([
             supabase.from('profiles').select('full_name').eq('user_id', otherId).single(),
             supabase.from('requests').select('title').eq('id', c.request_id).single(),
             supabase.from('messages').select('content, created_at').eq('conversation_id', c.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+            supabase.from('messages').select('id', { count: 'exact', head: true }).eq('conversation_id', c.id).neq('sender_id', user.id).is('read_at', null),
           ]);
 
           return {
@@ -51,6 +53,7 @@ export default function ChatList() {
             request_title: requestRes.data?.title || 'Request',
             last_message: msgRes.data?.content,
             last_message_at: msgRes.data?.created_at,
+            unread_count: unreadRes.count || 0,
           };
         })
       );
@@ -91,19 +94,29 @@ export default function ChatList() {
               onClick={() => navigate(`/chat/${c.id}`)}
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-card/50 transition-colors text-left active:scale-[0.99]"
             >
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold text-foreground shrink-0">
-                {c.other_name[0]?.toUpperCase() || '?'}
+              {/* Avatar with unread indicator */}
+              <div className="relative shrink-0">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-foreground ${
+                  c.unread_count > 0 ? 'bg-primary/20 ring-2 ring-primary' : 'bg-secondary'
+                }`}>
+                  {c.other_name[0]?.toUpperCase() || '?'}
+                </div>
+                {c.unread_count > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                    {c.unread_count > 9 ? '9+' : c.unread_count}
+                  </span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-sm text-foreground truncate">{c.other_name}</p>
+                  <p className={`text-sm truncate ${c.unread_count > 0 ? 'font-bold text-foreground' : 'font-semibold text-muted-foreground'}`}>{c.other_name}</p>
                   {c.last_message_at && (
-                    <span className="text-[10px] text-muted-foreground shrink-0">
+                    <span className={`text-[10px] shrink-0 ${c.unread_count > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
                       {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground truncate">
+                <p className={`text-xs truncate ${c.unread_count > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                   {c.last_message || c.request_title}
                 </p>
               </div>

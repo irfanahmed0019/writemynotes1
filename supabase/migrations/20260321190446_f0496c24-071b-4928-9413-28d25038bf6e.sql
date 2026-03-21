@@ -1,0 +1,1 @@
+ALTER TABLE public.messages ADD COLUMN read_at timestamptz DEFAULT NULL;

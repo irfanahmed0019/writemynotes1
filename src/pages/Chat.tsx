@@ -10,6 +10,7 @@ type Message = {
   sender_id: string;
   content: string;
   created_at: string;
+  read_at: string | null;
 };
 
 export default function Chat() {
@@ -22,6 +23,17 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Mark messages as read
+  const markAsRead = async () => {
+    if (!user || !id) return;
+    await supabase
+      .from('messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('conversation_id', id)
+      .neq('sender_id', user.id)
+      .is('read_at', null);
+  };
+
   useEffect(() => {
     if (!user || !id) return;
 
@@ -32,6 +44,8 @@ export default function Chat() {
         .eq('conversation_id', id)
         .order('created_at', { ascending: true });
       if (data) setMessages(data);
+      // Mark unread messages as read when opening chat
+      markAsRead();
     };
 
     const fetchConvo = async () => {
@@ -58,7 +72,12 @@ export default function Chat() {
         table: 'messages',
         filter: `conversation_id=eq.${id}`,
       }, (payload) => {
-        setMessages(prev => [...prev, payload.new as Message]);
+        const msg = payload.new as Message;
+        setMessages(prev => [...prev, msg]);
+        // If message is from the other user, mark it as read immediately
+        if (msg.sender_id !== user.id) {
+          markAsRead();
+        }
       })
       .subscribe();
 
@@ -111,6 +130,7 @@ export default function Chat() {
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map(m => {
           const isMine = m.sender_id === user.id;
+          const isRead = !!m.read_at;
           return (
             <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
               <div
@@ -121,9 +141,16 @@ export default function Chat() {
                 }`}
               >
                 <p className="break-words" style={{ overflowWrap: 'break-word' }}>{m.content}</p>
-                <p className={`text-[10px] mt-1 ${isMine ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
-                  {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
-                </p>
+                <div className={`flex items-center gap-1.5 mt-1 ${isMine ? 'justify-end' : ''}`}>
+                  <p className={`text-[10px] ${isMine ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
+                    {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
+                  </p>
+                  {isMine && (
+                    <span className={`text-[10px] font-medium ${isRead ? 'text-accent' : 'text-primary-foreground/40'}`}>
+                      {isRead ? 'Seen' : 'Sent'}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           );
@@ -131,22 +158,22 @@ export default function Chat() {
         <div ref={scrollRef} />
       </div>
 
-      {/* Input */}
-      <div className="shrink-0 border-t border-border bg-background px-4 py-3">
-        <div className="flex items-center gap-2">
+      {/* Input — raised and larger */}
+      <div className="shrink-0 border-t border-border bg-background px-4 pt-3 pb-6">
+        <div className="flex items-center gap-2.5">
           <input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 h-11 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+            className="flex-1 h-12 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
           />
           <button
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
-            className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center active:scale-[0.95] transition-transform disabled:opacity-50"
+            className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center active:scale-[0.95] transition-transform disabled:opacity-50"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           </button>
         </div>
       </div>
