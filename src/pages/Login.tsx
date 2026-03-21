@@ -16,7 +16,7 @@ export default function Login() {
     );
   }
 
-  if (user) return <Navigate to="/mode" replace />;
+  if (user) return <Navigate to="/marketplace" replace />;
 
   const handleGoogleLogin = async () => {
     setSigningIn(true);
