@@ -88,40 +88,44 @@ export default function ChatList() {
             <p className="text-muted-foreground text-sm">No conversations yet</p>
           </div>
         ) : (
-          conversations.map(c => (
-            <button
-              key={c.id}
-              onClick={() => navigate(`/chat/${c.id}`)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-card/50 transition-colors text-left active:scale-[0.99]"
-            >
-              {/* Avatar with unread indicator */}
-              <div className="relative shrink-0">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-foreground ${
-                  c.unread_count > 0 ? 'bg-primary/20 ring-2 ring-primary' : 'bg-secondary'
-                }`}>
-                  {c.other_name[0]?.toUpperCase() || '?'}
-                </div>
-                {c.unread_count > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                    {c.unread_count > 9 ? '9+' : c.unread_count}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className={`text-sm truncate ${c.unread_count > 0 ? 'font-bold text-foreground' : 'font-semibold text-muted-foreground'}`}>{c.other_name}</p>
-                  {c.last_message_at && (
-                    <span className={`text-[10px] shrink-0 ${c.unread_count > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
-                      {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
+          conversations.map(c => {
+            const isRead = c.unread_count === 0;
+            return (
+              <button
+                key={c.id}
+                onClick={() => navigate(`/chat/${c.id}`)}
+                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-card/50 transition-colors text-left active:scale-[0.99] ${isRead ? 'opacity-60' : ''}`}
+              >
+                <div className="relative shrink-0">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                    isRead
+                      ? 'bg-muted text-muted-foreground'
+                      : 'bg-primary/20 ring-2 ring-primary text-foreground'
+                  }`}>
+                    {c.other_name[0]?.toUpperCase() || '?'}
+                  </div>
+                  {c.unread_count > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                      {c.unread_count > 9 ? '9+' : c.unread_count}
                     </span>
                   )}
                 </div>
-                <p className={`text-xs truncate ${c.unread_count > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                  {c.last_message || c.request_title}
-                </p>
-              </div>
-            </button>
-          ))
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className={`text-sm truncate ${isRead ? 'font-normal text-muted-foreground' : 'font-bold text-foreground'}`}>{c.other_name}</p>
+                    {c.last_message_at && (
+                      <span className={`text-[10px] shrink-0 ${isRead ? 'text-muted-foreground' : 'text-primary font-semibold'}`}>
+                        {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
+                      </span>
+                    )}
+                  </div>
+                  <p className={`text-xs truncate ${isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
+                    {c.last_message || c.request_title}
+                  </p>
+                </div>
+              </button>
+            );
+          })
         )}
       </div>
 
