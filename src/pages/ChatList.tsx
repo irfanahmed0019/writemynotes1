@@ -1,0 +1,118 @@
+import { useAuth } from '@/lib/auth';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { MessageCircle } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
+
+type Conversation = {
+  id: string;
+  request_id: string;
+  buyer_id: string;
+  seller_id: string;
+  created_at: string;
+  other_name: string;
+  request_title: string;
+  last_message?: string;
+  last_message_at?: string;
+};
+
+export default function ChatList() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchConversations = async () => {
+      const { data: convos } = await supabase
+        .from('conversations')
+        .select('*')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+
+      if (!convos) return;
+
+      const enriched: Conversation[] = await Promise.all(
+        convos.map(async (c) => {
+          const otherId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
+          
+          const [profileRes, requestRes, msgRes] = await Promise.all([
+            supabase.from('profiles').select('full_name').eq('user_id', otherId).single(),
+            supabase.from('requests').select('title').eq('id', c.request_id).single(),
+            supabase.from('messages').select('content, created_at').eq('conversation_id', c.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+          ]);
+
+          return {
+            ...c,
+            other_name: profileRes.data?.full_name || 'Unknown',
+            request_title: requestRes.data?.title || 'Request',
+            last_message: msgRes.data?.content,
+            last_message_at: msgRes.data?.created_at,
+          };
+        })
+      );
+
+      setConversations(enriched);
+    };
+
+    fetchConversations();
+
+    const channel = supabase
+      .channel('conversations-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => fetchConversations())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => fetchConversations())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-4">
+        <h1 className="text-xl font-bold text-foreground">Messages</h1>
+      </div>
+
+      <div className="divide-y divide-border">
+        {conversations.length === 0 ? (
+          <div className="text-center py-16 space-y-3">
+            <MessageCircle className="w-10 h-10 text-muted-foreground mx-auto" />
+            <p className="text-muted-foreground text-sm">No conversations yet</p>
+          </div>
+        ) : (
+          conversations.map(c => (
+            <button
+              key={c.id}
+              onClick={() => navigate(`/chat/${c.id}`)}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-card/50 transition-colors text-left active:scale-[0.99]"
+            >
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold text-foreground shrink-0">
+                {c.other_name[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-sm text-foreground truncate">{c.other_name}</p>
+                  {c.last_message_at && (
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground truncate">
+                  {c.last_message || c.request_title}
+                </p>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}
