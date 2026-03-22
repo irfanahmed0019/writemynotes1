@@ -2,7 +2,7 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { Search, Plus, Trash2, MessageCircle, Clock, IndianRupee } from 'lucide-react';
+import { Search, Plus, Trash2, Clock, IndianRupee, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
 
@@ -12,6 +12,7 @@ type Request = {
   title: string;
   subject: string;
   budget: number;
+  pages: number;
   deadline: string;
   description: string | null;
   status: string;
@@ -42,12 +43,9 @@ export default function Marketplace() {
 
     fetchRequests();
 
-    // Real-time subscription
     const channel = supabase
       .channel('requests-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => {
-        fetchRequests();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => fetchRequests())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -63,39 +61,10 @@ export default function Marketplace() {
     return matchesSearch && matchesSubject;
   });
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     await supabase.from('requests').delete().eq('id', id);
     setRequests(prev => prev.filter(r => r.id !== id));
-  };
-
-  const handleContact = async (request: Request) => {
-    // Check if conversation already exists
-    const { data: existing } = await supabase
-      .from('conversations')
-      .select('id')
-      .eq('request_id', request.id)
-      .eq('seller_id', user.id)
-      .maybeSingle();
-
-    if (existing) {
-      navigate(`/chat/${existing.id}`);
-      return;
-    }
-
-    // Create new conversation
-    const { data: newConvo } = await supabase
-      .from('conversations')
-      .insert({
-        request_id: request.id,
-        buyer_id: request.user_id,
-        seller_id: user.id,
-      })
-      .select()
-      .single();
-
-    if (newConvo) {
-      navigate(`/chat/${newConvo.id}`);
-    }
   };
 
   return (
@@ -113,7 +82,6 @@ export default function Marketplace() {
           </button>
         </div>
 
-        {/* Search */}
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -125,7 +93,6 @@ export default function Marketplace() {
           />
         </div>
 
-        {/* Subject Filters */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {SUBJECTS.map(s => (
             <button
@@ -159,7 +126,11 @@ export default function Marketplace() {
           </div>
         ) : (
           filtered.map(r => (
-            <div key={r.id} className="p-4 rounded-xl bg-card border border-border space-y-3">
+            <button
+              key={r.id}
+              onClick={() => navigate(`/post/${r.id}`)}
+              className="w-full text-left p-4 rounded-xl bg-card border border-border space-y-3 active:scale-[0.99] transition-transform"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">
                   <h3 className="font-semibold text-foreground truncate">{r.title}</h3>
@@ -177,6 +148,14 @@ export default function Marketplace() {
                 </div>
               </div>
 
+              {/* Pages + Deadline summary */}
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <FileText className="w-3 h-3" />
+                  {r.pages || '—'} pages
+                </span>
+              </div>
+
               {r.description && (
                 <p className="text-sm text-muted-foreground line-clamp-2">{r.description}</p>
               )}
@@ -189,27 +168,17 @@ export default function Marketplace() {
                   <span className="text-xs text-muted-foreground">{r.profiles?.full_name || 'Anonymous'}</span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {r.user_id === user.id ? (
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="flex items-center gap-1 h-8 px-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium active:scale-[0.97] transition-transform"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Delete
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleContact(r)}
-                      className="flex items-center gap-1 h-8 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium active:scale-[0.97] transition-transform"
-                    >
-                      <MessageCircle className="w-3 h-3" />
-                      Contact
-                    </button>
-                  )}
-                </div>
+                {r.user_id === user.id && (
+                  <button
+                    onClick={(e) => handleDelete(e, r.id)}
+                    className="flex items-center gap-1 h-8 px-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium active:scale-[0.97] transition-transform"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </button>
+                )}
               </div>
-            </div>
+            </button>
           ))
         )}
       </div>

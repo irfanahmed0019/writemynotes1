@@ -7,10 +7,13 @@ import Login from "./pages/Login";
 import ModeSelect from "./pages/ModeSelect";
 import Marketplace from "./pages/Marketplace";
 import PostRequest from "./pages/PostRequest";
+import PostDetail from "./pages/PostDetail";
 import ChatList from "./pages/ChatList";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
+import WriterProfile from "./pages/WriterProfile";
 import NotFound from "./pages/NotFound";
+import MessagePopup from "./components/MessagePopup";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -33,15 +36,18 @@ const App = () => (
       <Toaster />
       <AuthProvider>
         <BrowserRouter>
+          <MessagePopup />
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<Login />} />
             <Route path="/mode" element={<ModeSelect />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/post" element={<PostRequest />} />
+            <Route path="/post/:id" element={<PostDetail />} />
             <Route path="/chats" element={<ChatList />} />
             <Route path="/chat/:id" element={<Chat />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/writer/:userId" element={<WriterProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -14,6 +14,7 @@ export default function PostRequest() {
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
   const [budget, setBudget] = useState('');
+  const [pages, setPages] = useState('');
   const [deadline, setDeadline] = useState('');
   const [description, setDescription] = useState('');
 
@@ -33,6 +34,7 @@ export default function PostRequest() {
       title,
       subject,
       budget: parseInt(budget),
+      pages: pages ? parseInt(pages) : 1,
       deadline: new Date(deadline).toISOString(),
       description: description || null,
     });
@@ -48,7 +50,6 @@ export default function PostRequest() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1 active:scale-[0.95] transition-transform">
           <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -57,7 +58,6 @@ export default function PostRequest() {
       </div>
 
       <form onSubmit={handleSubmit} className="px-4 py-6 space-y-5 max-w-lg mx-auto">
-        {/* Title */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-foreground">Title *</label>
           <input
@@ -68,7 +68,6 @@ export default function PostRequest() {
           />
         </div>
 
-        {/* Subject */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-foreground">Subject *</label>
           <div className="flex flex-wrap gap-2">
@@ -89,19 +88,29 @@ export default function PostRequest() {
           </div>
         </div>
 
-        {/* Budget */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-foreground">Budget (₹) *</label>
-          <input
-            type="number"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-            placeholder="e.g. 150"
-            className="w-full h-12 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">Budget (₹) *</label>
+            <input
+              type="number"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              placeholder="e.g. 150"
+              className="w-full h-12 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">Pages</label>
+            <input
+              type="number"
+              value={pages}
+              onChange={(e) => setPages(e.target.value)}
+              placeholder="e.g. 10"
+              className="w-full h-12 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+            />
+          </div>
         </div>
 
-        {/* Deadline */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-foreground">Deadline *</label>
           <input
@@ -112,7 +121,6 @@ export default function PostRequest() {
           />
         </div>
 
-        {/* Description */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-foreground">Description <span className="text-muted-foreground">(optional)</span></label>
           <textarea

@@ -1,9 +1,10 @@
 import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import TypingIndicator from '@/components/TypingIndicator';
 
 type Message = {
   id: string;
@@ -21,10 +22,11 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [otherName, setOtherName] = useState('');
   const [sending, setSending] = useState(false);
+  const [otherTyping, setOtherTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Mark messages as read
-  const markAsRead = async () => {
+  const markAsRead = useCallback(async () => {
     if (!user || !id) return;
     await supabase
       .from('messages')
@@ -32,7 +34,7 @@ export default function Chat() {
       .eq('conversation_id', id)
       .neq('sender_id', user.id)
       .is('read_at', null);
-  };
+  }, [user, id]);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -44,7 +46,6 @@ export default function Chat() {
         .eq('conversation_id', id)
         .order('created_at', { ascending: true });
       if (data) setMessages(data);
-      // Mark unread messages as read when opening chat
       markAsRead();
     };
 
@@ -64,32 +65,64 @@ export default function Chat() {
     fetchMessages();
     fetchConvo();
 
-    const channel = supabase
+    // Realtime messages
+    const msgChannel = supabase
       .channel(`chat-${id}`)
       .on('postgres_changes', {
-        event: 'INSERT',
+        event: '*',
         schema: 'public',
         table: 'messages',
         filter: `conversation_id=eq.${id}`,
       }, (payload) => {
-        const msg = payload.new as Message;
-        setMessages(prev => [...prev, msg]);
-        // If message is from the other user, mark it as read immediately
-        if (msg.sender_id !== user.id) {
-          markAsRead();
+        if (payload.eventType === 'INSERT') {
+          const msg = payload.new as Message;
+          setMessages(prev => [...prev, msg]);
+          if (msg.sender_id !== user.id) markAsRead();
+        } else if (payload.eventType === 'UPDATE') {
+          setMessages(prev => prev.map(m => m.id === (payload.new as Message).id ? payload.new as Message : m));
         }
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [user, id]);
+    // Typing presence
+    const presenceChannel = supabase.channel(`typing-${id}`, {
+      config: { presence: { key: user.id } },
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const others = Object.keys(state).filter(k => k !== user.id);
+        setOtherTyping(others.some(k => {
+          const presences = state[k] as any[];
+          return presences?.some(p => p.typing);
+        }));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(msgChannel);
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [user, id, markAsRead]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, otherTyping]);
 
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+
+  const broadcastTyping = () => {
+    const channel = supabase.channel(`typing-${id}`, {
+      config: { presence: { key: user!.id } },
+    });
+    channel.track({ typing: true });
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      channel.track({ typing: false });
+    }, 2000);
+  };
 
   const handleSend = async () => {
     if (!newMessage.trim() || sending) return;
@@ -97,9 +130,15 @@ export default function Chat() {
     const content = newMessage.trim();
     setNewMessage('');
 
+    // Stop typing indicator
+    const channel = supabase.channel(`typing-${id}`, {
+      config: { presence: { key: user!.id } },
+    });
+    channel.track({ typing: false });
+
     await supabase.from('messages').insert({
       conversation_id: id!,
-      sender_id: user.id,
+      sender_id: user!.id,
       content,
     });
 
@@ -123,13 +162,16 @@ export default function Chat() {
         <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-semibold text-foreground">
           {otherName[0]?.toUpperCase() || '?'}
         </div>
-        <span className="font-semibold text-foreground">{otherName}</span>
+        <div>
+          <span className="font-semibold text-foreground">{otherName}</span>
+          {otherTyping && <p className="text-[10px] text-primary font-medium">typing...</p>}
+        </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map(m => {
-          const isMine = m.sender_id === user.id;
+          const isMine = m.sender_id === user!.id;
           const isRead = !!m.read_at;
           return (
             <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
@@ -155,15 +197,19 @@ export default function Chat() {
             </div>
           );
         })}
+        {otherTyping && <TypingIndicator name={otherName} />}
         <div ref={scrollRef} />
       </div>
 
       {/* Input — raised and larger */}
-      <div className="shrink-0 border-t border-border bg-background px-4 pt-4 pb-10">
+      <div className="shrink-0 border-t border-border bg-background px-4 pt-4 pb-12">
         <div className="flex items-center gap-2.5">
           <input
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              broadcastTyping();
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             className="flex-1 h-14 px-4 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm"

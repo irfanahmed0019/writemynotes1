@@ -81,9 +81,42 @@ export type Database = {
           },
         ]
       }
+      post_interests: {
+        Row: {
+          created_at: string
+          id: string
+          request_id: string
+          status: string
+          writer_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          request_id: string
+          status?: string
+          writer_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          request_id?: string
+          status?: string
+          writer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_interests_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -93,6 +126,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -102,6 +136,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -118,6 +153,7 @@ export type Database = {
           deadline: string
           description: string | null
           id: string
+          pages: number | null
           status: string
           subject: string
           title: string
@@ -130,6 +166,7 @@ export type Database = {
           deadline: string
           description?: string | null
           id?: string
+          pages?: number | null
           status?: string
           subject: string
           title: string
@@ -142,6 +179,7 @@ export type Database = {
           deadline?: string
           description?: string | null
           id?: string
+          pages?: number | null
           status?: string
           subject?: string
           title?: string
@@ -157,6 +195,27 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      writing_samples: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
