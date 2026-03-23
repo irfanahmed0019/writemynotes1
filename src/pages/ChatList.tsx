@@ -58,7 +58,21 @@ export default function ChatList() {
         })
       );
 
-      setConversations(enriched);
+      // Deduplicate by other user — keep the one with the latest message/activity
+      const deduped = Object.values(
+        enriched.reduce((acc, c) => {
+          const otherId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
+          const existing = acc[otherId];
+          if (!existing || (c.last_message_at && (!existing.last_message_at || c.last_message_at > existing.last_message_at))) {
+            acc[otherId] = { ...c, unread_count: (existing?.unread_count || 0) + c.unread_count };
+          } else if (existing) {
+            existing.unread_count += c.unread_count;
+          }
+          return acc;
+        }, {} as Record<string, Conversation>)
+      );
+
+      setConversations(deduped);
     };
 
     fetchConversations();
