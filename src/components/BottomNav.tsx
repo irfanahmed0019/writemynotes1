@@ -16,12 +16,12 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [unreadTotal, setUnreadTotal] = useState(0);
+  const [activityCount, setActivityCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchUnread = async () => {
-      // Get all conversations where user is a participant
       const { data: convos } = await supabase
         .from('conversations')
         .select('id')
@@ -40,11 +40,31 @@ export default function BottomNav() {
       setUnreadTotal(count || 0);
     };
 
+    const fetchActivityCount = async () => {
+      // Count pending interests on user's posts
+      const { data: myRequests } = await supabase
+        .from('requests')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (!myRequests || myRequests.length === 0) { setActivityCount(0); return; }
+
+      const { count } = await supabase
+        .from('post_interests')
+        .select('id', { count: 'exact', head: true })
+        .in('request_id', myRequests.map(r => r.id))
+        .eq('status', 'pending');
+
+      setActivityCount(count || 0);
+    };
+
     fetchUnread();
+    fetchActivityCount();
 
     const channel = supabase
       .channel('unread-badge')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchUnread())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, () => fetchActivityCount())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
