@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Store, MessageCircle, User } from 'lucide-react';
+import { Store, MessageCircle, User, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
 const tabs = [
   { path: '/marketplace', icon: Store, label: 'Market' },
+  { path: '/activity', icon: Sparkles, label: 'Activity' },
   { path: '/chats', icon: MessageCircle, label: 'Chats' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];

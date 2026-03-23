@@ -45,6 +45,7 @@ const App = () => (
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/post" element={<PostRequest />} />
             <Route path="/post/:id" element={<PostDetail />} />
+            <Route path="/activity" element={<Activity />} />
             <Route path="/chats" element={<ChatList />} />
             <Route path="/chat/:id" element={<Chat />} />
             <Route path="/profile" element={<Profile />} />
