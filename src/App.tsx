@@ -12,6 +12,7 @@ import ChatList from "./pages/ChatList";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
 import WriterProfile from "./pages/WriterProfile";
+import Activity from "./pages/Activity";
 import NotFound from "./pages/NotFound";
 import MessagePopup from "./components/MessagePopup";
 import { Loader2 } from "lucide-react";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/post" element={<PostRequest />} />
             <Route path="/post/:id" element={<PostDetail />} />
+            <Route path="/activity" element={<Activity />} />
             <Route path="/chats" element={<ChatList />} />
             <Route path="/chat/:id" element={<Chat />} />
             <Route path="/profile" element={<Profile />} />

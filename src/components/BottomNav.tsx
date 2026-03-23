@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Store, MessageCircle, User } from 'lucide-react';
+import { Store, MessageCircle, User, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
 const tabs = [
   { path: '/marketplace', icon: Store, label: 'Market' },
+  { path: '/activity', icon: Sparkles, label: 'Activity' },
   { path: '/chats', icon: MessageCircle, label: 'Chats' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
@@ -15,12 +16,12 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [unreadTotal, setUnreadTotal] = useState(0);
+  const [activityCount, setActivityCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchUnread = async () => {
-      // Get all conversations where user is a participant
       const { data: convos } = await supabase
         .from('conversations')
         .select('id')
@@ -39,11 +40,31 @@ export default function BottomNav() {
       setUnreadTotal(count || 0);
     };
 
+    const fetchActivityCount = async () => {
+      // Count pending interests on user's posts
+      const { data: myRequests } = await supabase
+        .from('requests')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (!myRequests || myRequests.length === 0) { setActivityCount(0); return; }
+
+      const { count } = await supabase
+        .from('post_interests')
+        .select('id', { count: 'exact', head: true })
+        .in('request_id', myRequests.map(r => r.id))
+        .eq('status', 'pending');
+
+      setActivityCount(count || 0);
+    };
+
     fetchUnread();
+    fetchActivityCount();
 
     const channel = supabase
       .channel('unread-badge')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchUnread())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, () => fetchActivityCount())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -54,7 +75,8 @@ export default function BottomNav() {
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {tabs.map(tab => {
           const active = location.pathname.startsWith(tab.path);
-          const showBadge = tab.path === '/chats' && unreadTotal > 0;
+          const showBadge = (tab.path === '/chats' && unreadTotal > 0) || (tab.path === '/activity' && activityCount > 0);
+          const badgeCount = tab.path === '/chats' ? unreadTotal : activityCount;
           return (
             <button
               key={tab.path}
@@ -67,7 +89,7 @@ export default function BottomNav() {
                 <tab.icon className="w-5 h-5" />
                 {showBadge && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                    {unreadTotal > 99 ? '99+' : unreadTotal}
+                    {badgeCount > 99 ? '99+' : badgeCount}
                   </span>
                 )}
               </div>
