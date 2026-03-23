@@ -89,7 +89,7 @@ export default function BottomNav() {
                 <tab.icon className="w-5 h-5" />
                 {showBadge && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
-                    {unreadTotal > 99 ? '99+' : unreadTotal}
+                    {badgeCount > 99 ? '99+' : badgeCount}
                   </span>
                 )}
               </div>
