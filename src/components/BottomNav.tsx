@@ -75,7 +75,8 @@ export default function BottomNav() {
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {tabs.map(tab => {
           const active = location.pathname.startsWith(tab.path);
-          const showBadge = tab.path === '/chats' && unreadTotal > 0;
+          const showBadge = (tab.path === '/chats' && unreadTotal > 0) || (tab.path === '/activity' && activityCount > 0);
+          const badgeCount = tab.path === '/chats' ? unreadTotal : activityCount;
           return (
             <button
               key={tab.path}
