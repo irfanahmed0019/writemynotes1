@@ -51,6 +51,7 @@ const App = () => (
             <Route path="/chat/:id" element={<Chat />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/writer/:userId" element={<WriterProfile />} />
+            <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
