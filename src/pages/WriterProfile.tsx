@@ -2,7 +2,8 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 type ProfileData = {
   full_name: string | null;
@@ -24,6 +25,7 @@ export default function WriterProfile() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [samples, setSamples] = useState<Sample[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [messaging, setMessaging] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -41,6 +43,74 @@ export default function WriterProfile() {
     fetch();
   }, [userId]);
 
+  const handleMessage = async () => {
+    if (!user || !userId || userId === user.id) return;
+    setMessaging(true);
+
+    try {
+      // Check if a conversation already exists between these two users
+      const { data: existing } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(buyer_id.eq.${user.id},seller_id.eq.${userId}),and(buyer_id.eq.${userId},seller_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (existing) {
+        navigate(`/chat/${existing.id}`);
+        return;
+      }
+
+      // Find a request to link this conversation to (pick the first approved interest or any request)
+      const { data: interest } = await supabase
+        .from('post_interests')
+        .select('request_id')
+        .eq('writer_id', userId)
+        .eq('status', 'approved')
+        .limit(1)
+        .maybeSingle();
+
+      if (!interest) {
+        // Try reverse: current user is the writer
+        const { data: reverseInterest } = await supabase
+          .from('post_interests')
+          .select('request_id')
+          .eq('writer_id', user.id)
+          .eq('status', 'approved')
+          .limit(1)
+          .maybeSingle();
+
+        if (!reverseInterest) {
+          toast.error('No approved interest yet — approve the writer first');
+          setMessaging(false);
+          return;
+        }
+
+        const { data: convo, error } = await supabase
+          .from('conversations')
+          .insert({ seller_id: user.id, buyer_id: userId, request_id: reverseInterest.request_id })
+          .select('id')
+          .single();
+
+        if (error) throw error;
+        navigate(`/chat/${convo.id}`);
+        return;
+      }
+
+      const { data: convo, error } = await supabase
+        .from('conversations')
+        .insert({ seller_id: user.id, buyer_id: userId, request_id: interest.request_id })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      navigate(`/chat/${convo.id}`);
+    } catch (err: any) {
+      toast.error('Could not start conversation');
+    } finally {
+      setMessaging(false);
+    }
+  };
+
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
@@ -49,6 +119,8 @@ export default function WriterProfile() {
       <Loader2 className="w-6 h-6 animate-spin text-primary" />
     </div>
   );
+
+  const isOwnProfile = userId === user.id;
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -82,6 +154,18 @@ export default function WriterProfile() {
           <div className="p-4 rounded-xl bg-card border border-border">
             <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
           </div>
+        )}
+
+        {/* Message Button */}
+        {!isOwnProfile && (
+          <button
+            onClick={handleMessage}
+            disabled={messaging}
+            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-primary text-primary-foreground font-medium text-sm active:scale-[0.97] transition-transform disabled:opacity-50"
+          >
+            {messaging ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+            Message
+          </button>
         )}
 
         {/* Writing Samples */}
