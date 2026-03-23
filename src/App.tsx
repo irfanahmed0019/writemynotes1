@@ -12,6 +12,7 @@ import ChatList from "./pages/ChatList";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
 import WriterProfile from "./pages/WriterProfile";
+import Activity from "./pages/Activity";
 import NotFound from "./pages/NotFound";
 import MessagePopup from "./components/MessagePopup";
 import { Loader2 } from "lucide-react";
