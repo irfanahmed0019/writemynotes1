@@ -60,45 +60,69 @@ export default function WriterProfile() {
         return;
       }
 
-      // Find a request to link this conversation to (pick the first approved interest or any request)
+      // Find any interest between this writer and current user's requests (approved or pending)
+      // First check: userId is the writer on current user's posts
       const { data: interest } = await supabase
         .from('post_interests')
-        .select('request_id')
+        .select('id, request_id, status')
         .eq('writer_id', userId)
-        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (!interest) {
-        // Try reverse: current user is the writer
+      let requestId: string | null = null;
+
+      if (interest) {
+        // Auto-approve if still pending (poster is initiating chat = approval)
+        if (interest.status === 'pending') {
+          await supabase
+            .from('post_interests')
+            .update({ status: 'approved' })
+            .eq('id', interest.id);
+        }
+        requestId = interest.request_id;
+      } else {
+        // Reverse: current user is the writer
         const { data: reverseInterest } = await supabase
           .from('post_interests')
-          .select('request_id')
+          .select('id, request_id, status')
           .eq('writer_id', user.id)
-          .eq('status', 'approved')
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        if (!reverseInterest) {
-          toast.error('No approved interest yet — approve the writer first');
+        if (reverseInterest) {
+          if (reverseInterest.status === 'pending') {
+            await supabase
+              .from('post_interests')
+              .update({ status: 'approved' })
+              .eq('id', reverseInterest.id);
+          }
+          requestId = reverseInterest.request_id;
+        }
+      }
+
+      if (!requestId) {
+        // Fallback: pick any request by either user to link conversation
+        const { data: anyRequest } = await supabase
+          .from('requests')
+          .select('id')
+          .or(`user_id.eq.${user.id},user_id.eq.${userId}`)
+          .limit(1)
+          .maybeSingle();
+
+        if (!anyRequest) {
+          toast.error('No linked request found');
           setMessaging(false);
           return;
         }
-
-        const { data: convo, error } = await supabase
-          .from('conversations')
-          .insert({ seller_id: user.id, buyer_id: userId, request_id: reverseInterest.request_id })
-          .select('id')
-          .single();
-
-        if (error) throw error;
-        navigate(`/chat/${convo.id}`);
-        return;
+        requestId = anyRequest.id;
       }
 
+      // Create conversation — current user is always seller_id (RLS requires auth.uid() = seller_id)
       const { data: convo, error } = await supabase
         .from('conversations')
-        .insert({ seller_id: user.id, buyer_id: userId, request_id: interest.request_id })
+        .insert({ seller_id: user.id, buyer_id: userId, request_id: requestId })
         .select('id')
         .single();
 
