@@ -8,6 +8,7 @@ const tabs = [
   { path: '/marketplace', icon: Store, label: 'Market' },
   { path: '/activity', icon: Sparkles, label: 'Activity' },
   { path: '/chats', icon: MessageCircle, label: 'Chats' },
+  { path: '/install', icon: Download, label: 'Install' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
