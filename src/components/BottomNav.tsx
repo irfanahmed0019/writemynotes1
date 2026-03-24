@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Store, MessageCircle, User, Sparkles } from 'lucide-react';
+import { Store, MessageCircle, User, Sparkles, Download } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
