@@ -11,6 +11,11 @@ export default function MessagePopup() {
   useEffect(() => {
     if (!user) return;
 
+    // Request notification permission for PWA
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     const channel = supabase
       .channel('global-message-popup')
       .on('postgres_changes', {
