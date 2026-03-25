@@ -18,6 +18,17 @@ export default function BottomNav() {
   const { user } = useAuth();
   const [unreadTotal, setUnreadTotal] = useState(0);
   const [activityCount, setActivityCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('user_roles' as any).select('role').eq('user_id', user.id).eq('role', 'admin')
+      .then(({ data }) => { setIsAdmin(Array.isArray(data) && data.length > 0); });
+  }, [user]);
+
+  const tabs = isAdmin
+    ? [...baseTabs.slice(0, 4), { path: '/admin', icon: Shield, label: 'Admin' }, baseTabs[4]]
+    : baseTabs;
 
   useEffect(() => {
     if (!user) return;
