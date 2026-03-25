@@ -4,7 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useRef } from 'react';
 import { LogOut, Package, Pencil, Plus, Trash2, Loader2 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import ImagePreview from '@/components/ImagePreview';
 import { toast } from 'sonner';
+import { compressImage } from '@/lib/compress';
 
 type ProfileData = {
   full_name: string | null;
@@ -36,6 +38,7 @@ export default function Profile() {
   const [editingBio, setEditingBio] = useState(false);
   const [bioText, setBioText] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -73,10 +76,12 @@ export default function Profile() {
     if (!file) return;
     setUploading(true);
 
-    const ext = file.name.split('.').pop();
-    const path = `${user.id}/${Date.now()}.${ext}`;
+    try {
+      const compressed = await compressImage(file);
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
 
-    const { error: uploadErr } = await supabase.storage.from('writing-samples').upload(path, file);
+      const { error: uploadErr } = await supabase.storage.from('writing-samples').upload(path, compressed);
     if (uploadErr) {
       toast.error('Upload failed');
       setUploading(false);
@@ -93,6 +98,9 @@ export default function Profile() {
 
     if (insertErr) toast.error('Failed to save sample');
     else if (sample) setSamples(prev => [sample, ...prev]);
+    } catch {
+      toast.error('Compression failed');
+    }
 
     setUploading(false);
     if (fileRef.current) fileRef.current.value = '';
@@ -179,7 +187,7 @@ export default function Profile() {
             <div className="grid grid-cols-2 gap-2">
               {samples.map(s => (
                 <div key={s.id} className="relative group">
-                  <img src={s.image_url} alt="Sample" className="w-full aspect-[3/4] rounded-xl object-cover border border-border" />
+                  <img src={s.image_url} alt="Sample" className="w-full aspect-[3/4] rounded-xl object-cover border border-border cursor-pointer" onClick={() => setPreviewUrl(s.image_url)} />
                   <button
                     onClick={() => deleteSample(s)}
                     className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-destructive/90 text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity active:scale-[0.95]"
@@ -228,6 +236,7 @@ export default function Profile() {
       </div>
 
       <BottomNav />
+      {previewUrl && <ImagePreview src={previewUrl} onClose={() => setPreviewUrl(null)} />}
     </div>
   );
 }

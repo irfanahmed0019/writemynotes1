@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import ImagePreview from '@/components/ImagePreview';
 
 type ProfileData = {
   full_name: string | null;
@@ -26,6 +27,7 @@ export default function WriterProfile() {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [fetching, setFetching] = useState(true);
   const [messaging, setMessaging] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -206,13 +208,15 @@ export default function WriterProfile() {
                   key={s.id}
                   src={s.image_url}
                   alt="Writing sample"
-                  className="w-full aspect-[3/4] rounded-xl object-cover border border-border"
+                  className="w-full aspect-[3/4] rounded-xl object-cover border border-border cursor-pointer"
+                  onClick={() => setPreviewUrl(s.image_url)}
                 />
               ))}
             </div>
           )}
         </div>
       </div>
+      {previewUrl && <ImagePreview src={previewUrl} onClose={() => setPreviewUrl(null)} />}
     </div>
   );
 }
