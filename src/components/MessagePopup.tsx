@@ -68,7 +68,52 @@ export default function MessagePopup() {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Activity notifications (interest on your posts)
+    const activityChannel = supabase
+      .channel('global-activity-popup')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'post_interests',
+      }, async (payload) => {
+        const interest = payload.new as any;
+        // Check if this is on the current user's request
+        const { data: req } = await supabase
+          .from('requests')
+          .select('title')
+          .eq('id', interest.request_id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!req) return;
+
+        const { data: writerProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('user_id', interest.writer_id)
+          .single();
+
+        const writerName = writerProfile?.full_name || 'A writer';
+
+        toast(`${writerName} is willing to write "${req.title}"`, {
+          duration: 5000,
+          action: {
+            label: 'View',
+            onClick: () => navigate(`/writer/${interest.writer_id}`),
+          },
+        });
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const notif = new Notification('New Interest', { body: `${writerName} wants to write "${req.title}"`, icon: '/pwa-192.png' });
+          notif.onclick = () => { window.focus(); navigate(`/writer/${interest.writer_id}`); };
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(activityChannel);
+    };
   }, [user, navigate]);
 
   return null;
