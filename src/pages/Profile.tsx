@@ -4,7 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useRef } from 'react';
 import { LogOut, Package, Pencil, Plus, Trash2, Loader2 } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
+import ImagePreview from '@/components/ImagePreview';
 import { toast } from 'sonner';
+import { compressImage } from '@/lib/compress';
 
 type ProfileData = {
   full_name: string | null;
