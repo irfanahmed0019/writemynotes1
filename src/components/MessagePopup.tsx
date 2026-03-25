@@ -54,6 +54,12 @@ export default function MessagePopup() {
             },
           }
         );
+
+        // Browser/PWA notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const notif = new Notification(`${senderName}`, { body: preview, icon: '/pwa-192.png', tag: convo.id });
+          notif.onclick = () => { window.focus(); navigate(`/chat/${convo.id}`); };
+        }
       })
       .subscribe();
 

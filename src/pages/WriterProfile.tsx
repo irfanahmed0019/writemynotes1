@@ -216,6 +216,7 @@ export default function WriterProfile() {
           )}
         </div>
       </div>
+      {previewUrl && <ImagePreview src={previewUrl} onClose={() => setPreviewUrl(null)} />}
     </div>
   );
 }

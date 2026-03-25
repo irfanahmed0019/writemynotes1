@@ -236,6 +236,7 @@ export default function Profile() {
       </div>
 
       <BottomNav />
+      {previewUrl && <ImagePreview src={previewUrl} onClose={() => setPreviewUrl(null)} />}
     </div>
   );
 }
