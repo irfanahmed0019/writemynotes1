@@ -14,6 +14,7 @@ import Profile from "./pages/Profile";
 import WriterProfile from "./pages/WriterProfile";
 import Activity from "./pages/Activity";
 import Install from "./pages/Install";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import MessagePopup from "./components/MessagePopup";
 import { Loader2 } from "lucide-react";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/writer/:userId" element={<WriterProfile />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

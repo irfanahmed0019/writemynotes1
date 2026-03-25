@@ -1,10 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Store, MessageCircle, User, Sparkles, Download } from 'lucide-react';
+import { Store, MessageCircle, User, Sparkles, Download, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
-const tabs = [
+const baseTabs = [
   { path: '/marketplace', icon: Store, label: 'Market' },
   { path: '/activity', icon: Sparkles, label: 'Activity' },
   { path: '/chats', icon: MessageCircle, label: 'Chats' },
@@ -18,6 +18,17 @@ export default function BottomNav() {
   const { user } = useAuth();
   const [unreadTotal, setUnreadTotal] = useState(0);
   const [activityCount, setActivityCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('user_roles' as any).select('role').eq('user_id', user.id).eq('role', 'admin')
+      .then(({ data }) => { setIsAdmin(Array.isArray(data) && data.length > 0); });
+  }, [user]);
+
+  const tabs = isAdmin
+    ? [...baseTabs.slice(0, 4), { path: '/admin', icon: Shield, label: 'Admin' }, baseTabs[4]]
+    : baseTabs;
 
   useEffect(() => {
     if (!user) return;
