@@ -38,6 +38,7 @@ export default function Profile() {
   const [editingBio, setEditingBio] = useState(false);
   const [bioText, setBioText] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
