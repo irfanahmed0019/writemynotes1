@@ -208,7 +208,8 @@ export default function WriterProfile() {
                   key={s.id}
                   src={s.image_url}
                   alt="Writing sample"
-                  className="w-full aspect-[3/4] rounded-xl object-cover border border-border"
+                  className="w-full aspect-[3/4] rounded-xl object-cover border border-border cursor-pointer"
+                  onClick={() => setPreviewUrl(s.image_url)}
                 />
               ))}
             </div>
