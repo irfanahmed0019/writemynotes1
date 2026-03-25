@@ -76,10 +76,12 @@ export default function Profile() {
     if (!file) return;
     setUploading(true);
 
-    const ext = file.name.split('.').pop();
-    const path = `${user.id}/${Date.now()}.${ext}`;
+    try {
+      const compressed = await compressImage(file);
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
 
-    const { error: uploadErr } = await supabase.storage.from('writing-samples').upload(path, file);
+      const { error: uploadErr } = await supabase.storage.from('writing-samples').upload(path, compressed);
     if (uploadErr) {
       toast.error('Upload failed');
       setUploading(false);
