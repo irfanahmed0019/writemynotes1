@@ -27,6 +27,7 @@ export default function WriterProfile() {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [fetching, setFetching] = useState(true);
   const [messaging, setMessaging] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
