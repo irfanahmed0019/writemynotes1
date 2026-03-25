@@ -187,7 +187,7 @@ export default function Profile() {
             <div className="grid grid-cols-2 gap-2">
               {samples.map(s => (
                 <div key={s.id} className="relative group">
-                  <img src={s.image_url} alt="Sample" className="w-full aspect-[3/4] rounded-xl object-cover border border-border" />
+                  <img src={s.image_url} alt="Sample" className="w-full aspect-[3/4] rounded-xl object-cover border border-border cursor-pointer" onClick={() => setPreviewUrl(s.image_url)} />
                   <button
                     onClick={() => deleteSample(s)}
                     className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-destructive/90 text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity active:scale-[0.95]"
