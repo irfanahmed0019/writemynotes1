@@ -98,6 +98,9 @@ export default function Profile() {
 
     if (insertErr) toast.error('Failed to save sample');
     else if (sample) setSamples(prev => [sample, ...prev]);
+    } catch {
+      toast.error('Compression failed');
+    }
 
     setUploading(false);
     if (fileRef.current) fileRef.current.value = '';
