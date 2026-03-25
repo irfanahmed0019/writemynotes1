@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import ImagePreview from '@/components/ImagePreview';
 
 type ProfileData = {
   full_name: string | null;
