@@ -2,7 +2,7 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, Shield } from 'lucide-react';
+import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, Shield, BookOpen, Plus, Save } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 type UserProfile = {
@@ -38,7 +38,7 @@ type ConversationItem = {
   message_count?: number;
 };
 
-type Tab = 'users' | 'posts' | 'chats';
+type Tab = 'users' | 'posts' | 'chats' | 'study';
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -51,7 +51,14 @@ export default function AdminDashboard() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
 
-  // Check admin role
+  // Study admin state
+  const [studyConfig, setStudyConfig] = useState<any>(null);
+  const [studySubjects, setStudySubjects] = useState<any[]>([]);
+  const [semesterLabel, setSemesterLabel] = useState('');
+  const [timetableUrl, setTimetableUrl] = useState('');
+  const [newSubject, setNewSubject] = useState({ name: '', notes_url: '', papers_url: '' });
+  const [studySaving, setStudySaving] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     const checkAdmin = async () => {
@@ -65,7 +72,6 @@ export default function AdminDashboard() {
     checkAdmin();
   }, [user]);
 
-  // Fetch data based on tab
   useEffect(() => {
     if (!isAdmin) return;
 
@@ -86,9 +92,7 @@ export default function AdminDashboard() {
           .from('conversations')
           .select('*')
           .order('created_at', { ascending: false });
-
         if (!convos) return;
-
         const enriched = await Promise.all(convos.map(async (c: any) => {
           const [buyerRes, sellerRes, msgRes] = await Promise.all([
             supabase.from('profiles').select('full_name').eq('user_id', c.buyer_id).single(),
@@ -98,7 +102,6 @@ export default function AdminDashboard() {
               .order('created_at', { ascending: false })
               .limit(1),
           ]);
-
           return {
             ...c,
             buyer_profile: buyerRes.data,
@@ -107,14 +110,31 @@ export default function AdminDashboard() {
             message_count: msgRes.count || 0,
           };
         }));
-
         setConversations(enriched);
       };
       fetchChats();
     }
+
+    if (tab === 'study') {
+      const fetchStudy = async () => {
+        const { data: configs } = await supabase.from('study_config').select('*').limit(1);
+        if (configs && configs.length > 0) {
+          const cfg = configs[0] as any;
+          setStudyConfig(cfg);
+          setSemesterLabel(cfg.semester_label);
+          setTimetableUrl(cfg.timetable_url || '');
+          const { data: subs } = await supabase
+            .from('study_subjects')
+            .select('*')
+            .eq('config_id', cfg.id)
+            .order('sort_order', { ascending: true });
+          if (subs) setStudySubjects(subs as any);
+        }
+      };
+      fetchStudy();
+    }
   }, [isAdmin, tab]);
 
-  // View chat messages
   useEffect(() => {
     if (!selectedChat) return;
     supabase.from('messages').select('*')
@@ -122,7 +142,6 @@ export default function AdminDashboard() {
       .order('created_at', { ascending: true })
       .then(async ({ data }) => {
         if (!data) return;
-        // Enrich with sender names
         const senderIds = [...new Set(data.map(m => m.sender_id))];
         const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', senderIds);
         const nameMap: Record<string, string> = {};
@@ -147,15 +166,50 @@ export default function AdminDashboard() {
     setPosts(prev => prev.filter(p => p.id !== id));
   };
 
+  const saveStudyConfig = async () => {
+    if (!studyConfig) return;
+    setStudySaving(true);
+    await supabase.from('study_config').update({
+      semester_label: semesterLabel,
+      timetable_url: timetableUrl,
+    } as any).eq('id', studyConfig.id);
+    setStudySaving(false);
+  };
+
+  const addSubject = async () => {
+    if (!studyConfig || !newSubject.name.trim()) return;
+    const { data } = await supabase.from('study_subjects').insert({
+      config_id: studyConfig.id,
+      name: newSubject.name,
+      notes_url: newSubject.notes_url,
+      papers_url: newSubject.papers_url,
+      sort_order: studySubjects.length,
+    } as any).select();
+    if (data) {
+      setStudySubjects(prev => [...prev, ...(data as any)]);
+      setNewSubject({ name: '', notes_url: '', papers_url: '' });
+    }
+  };
+
+  const deleteSubject = async (id: string) => {
+    await supabase.from('study_subjects').delete().eq('id', id);
+    setStudySubjects(prev => prev.filter(s => s.id !== id));
+  };
+
+  const updateSubject = async (id: string, field: string, value: string) => {
+    await supabase.from('study_subjects').update({ [field]: value } as any).eq('id', id);
+    setStudySubjects(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
   const tabs: { key: Tab; label: string; icon: any; count: number }[] = [
     { key: 'users', label: 'Users', icon: Users, count: users.length },
     { key: 'posts', label: 'Posts', icon: FileText, count: posts.length },
     { key: 'chats', label: 'Chats', icon: MessageSquare, count: conversations.length },
+    { key: 'study', label: 'Study', icon: BookOpen, count: studySubjects.length },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 pt-4 pb-3">
         <div className="flex items-center gap-3 mb-3">
           <button onClick={() => navigate('/marketplace')} className="p-1">
@@ -164,13 +218,12 @@ export default function AdminDashboard() {
           <Shield className="w-5 h-5 text-primary" />
           <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
         </div>
-
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto">
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => { setTab(t.key); setSelectedChat(null); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
                 tab === t.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
               }`}
             >
@@ -261,9 +314,7 @@ export default function AdminDashboard() {
               <p className="font-semibold text-sm text-foreground">
                 {c.buyer_profile?.full_name || 'Unknown'} ↔ {c.seller_profile?.full_name || 'Unknown'}
               </p>
-              <span className="text-[10px] text-muted-foreground">
-                {c.message_count} msgs
-              </span>
+              <span className="text-[10px] text-muted-foreground">{c.message_count} msgs</span>
             </div>
             {c.last_message && (
               <p className="text-xs text-muted-foreground truncate">{c.last_message}</p>
@@ -274,15 +325,10 @@ export default function AdminDashboard() {
           </button>
         ))}
 
-        {/* Chat Messages View */}
         {tab === 'chats' && selectedChat && (
           <div className="space-y-3">
-            <button
-              onClick={() => setSelectedChat(null)}
-              className="flex items-center gap-1 text-sm text-primary font-medium"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back to chats
+            <button onClick={() => setSelectedChat(null)} className="flex items-center gap-1 text-sm text-primary font-medium">
+              <ChevronLeft className="w-4 h-4" /> Back to chats
             </button>
             <div className="space-y-2">
               {chatMessages.map(m => (
@@ -304,6 +350,101 @@ export default function AdminDashboard() {
               {chatMessages.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-8">No messages in this conversation</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Study Tab */}
+        {tab === 'study' && (
+          <div className="space-y-4">
+            {/* Config */}
+            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
+              <h3 className="font-semibold text-sm text-foreground">Semester Settings</h3>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Semester Label</label>
+                <input
+                  value={semesterLabel}
+                  onChange={e => setSemesterLabel(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
+                  placeholder="e.g. S1, S2"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Timetable URL</label>
+                <input
+                  value={timetableUrl}
+                  onChange={e => setTimetableUrl(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
+                  placeholder="Google Drive link"
+                />
+              </div>
+              <button
+                onClick={saveStudyConfig}
+                disabled={studySaving}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {studySaving ? 'Saving...' : 'Save Settings'}
+              </button>
+            </div>
+
+            {/* Subjects */}
+            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
+              <h3 className="font-semibold text-sm text-foreground">Subjects</h3>
+              {studySubjects.map(s => (
+                <div key={s.id} className="p-3 rounded-lg bg-secondary space-y-2">
+                  <div className="flex items-center justify-between">
+                    <input
+                      defaultValue={s.name}
+                      onBlur={e => updateSubject(s.id, 'name', e.target.value)}
+                      className="font-medium text-sm text-foreground bg-transparent border-none outline-none flex-1"
+                    />
+                    <button onClick={() => deleteSubject(s.id)} className="text-destructive">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <input
+                    defaultValue={s.notes_url}
+                    onBlur={e => updateSubject(s.id, 'notes_url', e.target.value)}
+                    className="w-full px-2 py-1 rounded bg-background border border-border text-xs text-foreground"
+                    placeholder="Notes URL"
+                  />
+                  <input
+                    defaultValue={s.papers_url}
+                    onBlur={e => updateSubject(s.id, 'papers_url', e.target.value)}
+                    className="w-full px-2 py-1 rounded bg-background border border-border text-xs text-foreground"
+                    placeholder="Papers URL"
+                  />
+                </div>
+              ))}
+
+              {/* Add new */}
+              <div className="p-3 rounded-lg border border-dashed border-border space-y-2">
+                <input
+                  value={newSubject.name}
+                  onChange={e => setNewSubject(p => ({ ...p, name: e.target.value }))}
+                  className="w-full px-2 py-1.5 rounded bg-secondary border border-border text-sm text-foreground"
+                  placeholder="Subject name"
+                />
+                <input
+                  value={newSubject.notes_url}
+                  onChange={e => setNewSubject(p => ({ ...p, notes_url: e.target.value }))}
+                  className="w-full px-2 py-1 rounded bg-secondary border border-border text-xs text-foreground"
+                  placeholder="Notes URL"
+                />
+                <input
+                  value={newSubject.papers_url}
+                  onChange={e => setNewSubject(p => ({ ...p, papers_url: e.target.value }))}
+                  className="w-full px-2 py-1 rounded bg-secondary border border-border text-xs text-foreground"
+                  placeholder="Papers URL"
+                />
+                <button
+                  onClick={addSubject}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Subject
+                </button>
+              </div>
             </div>
           </div>
         )}
