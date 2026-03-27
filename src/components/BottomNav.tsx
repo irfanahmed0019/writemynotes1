@@ -8,6 +8,7 @@ const baseTabs = [
   { path: '/marketplace', icon: Store, label: 'Market' },
   { path: '/activity', icon: Sparkles, label: 'Activity' },
   { path: '/chats', icon: MessageCircle, label: 'Chats' },
+  { path: '/study', icon: BookOpen, label: 'Study' },
   { path: '/install', icon: Download, label: 'Install' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
