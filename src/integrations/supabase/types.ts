@@ -196,6 +196,65 @@ export type Database = {
           },
         ]
       }
+      study_config: {
+        Row: {
+          id: string
+          semester_label: string
+          timetable_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          semester_label?: string
+          timetable_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          semester_label?: string
+          timetable_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      study_subjects: {
+        Row: {
+          config_id: string
+          created_at: string
+          id: string
+          name: string
+          notes_url: string | null
+          papers_url: string | null
+          sort_order: number
+        }
+        Insert: {
+          config_id: string
+          created_at?: string
+          id?: string
+          name: string
+          notes_url?: string | null
+          papers_url?: string | null
+          sort_order?: number
+        }
+        Update: {
+          config_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          notes_url?: string | null
+          papers_url?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_subjects_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "study_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
