@@ -28,7 +28,7 @@ export default function BottomNav() {
   }, [user]);
 
   const tabs = isAdmin
-    ? [...baseTabs.slice(0, 5), { path: '/admin', icon: Shield, label: 'Admin' }, baseTabs[5], baseTabs[6]]
+    ? [...baseTabs.slice(0, 5), { path: '/admin', icon: Shield, label: 'Admin' }, baseTabs[5]]
     : baseTabs;
 
   useEffect(() => {
