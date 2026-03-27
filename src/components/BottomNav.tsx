@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Store, MessageCircle, User, Sparkles, Download, Shield } from 'lucide-react';
+import { Store, MessageCircle, User, Sparkles, Download, Shield, BookOpen } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
@@ -8,6 +8,7 @@ const baseTabs = [
   { path: '/marketplace', icon: Store, label: 'Market' },
   { path: '/activity', icon: Sparkles, label: 'Activity' },
   { path: '/chats', icon: MessageCircle, label: 'Chats' },
+  { path: '/study', icon: BookOpen, label: 'Study' },
   { path: '/install', icon: Download, label: 'Install' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
@@ -27,7 +28,7 @@ export default function BottomNav() {
   }, [user]);
 
   const tabs = isAdmin
-    ? [...baseTabs.slice(0, 4), { path: '/admin', icon: Shield, label: 'Admin' }, baseTabs[4]]
+    ? [...baseTabs.slice(0, 5), { path: '/admin', icon: Shield, label: 'Admin' }, baseTabs[5], baseTabs[6]]
     : baseTabs;
 
   useEffect(() => {
