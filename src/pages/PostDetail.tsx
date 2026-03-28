@@ -169,7 +169,7 @@ export default function PostDetail() {
           </div>
 
           {request.description && (
-            <div className="p-4 rounded-xl bg-card border border-border">
+            <div className="p-4 rounded-xl glass">
               <p className="text-sm text-muted-foreground leading-relaxed">{request.description}</p>
             </div>
           )}
