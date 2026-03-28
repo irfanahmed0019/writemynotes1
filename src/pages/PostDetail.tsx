@@ -177,7 +177,7 @@ export default function PostDetail() {
           {/* Posted by */}
           <button
             onClick={() => navigate(`/writer/${request.user_id}`)}
-            className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border w-full active:scale-[0.98] transition-transform"
+            className="flex items-center gap-3 p-3 rounded-xl glass w-full active:scale-[0.98] transition-transform"
           >
             {request.profiles?.avatar_url ? (
               <img src={request.profiles.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
