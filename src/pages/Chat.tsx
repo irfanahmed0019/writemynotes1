@@ -179,7 +179,7 @@ export default function Chat() {
                 className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${
                   isMine
                     ? 'bg-primary text-primary-foreground rounded-br-md'
-                    : 'bg-card border border-border text-foreground rounded-bl-md'
+                    : 'glass text-foreground rounded-bl-md'
                 }`}
               >
                 <p className="break-words" style={{ overflowWrap: 'break-word' }}>{m.content}</p>
