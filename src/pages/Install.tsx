@@ -36,9 +36,9 @@ export default function Install() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6">
-      <div className="w-full max-w-sm space-y-8 text-center">
+      <div className="w-full max-w-sm space-y-8 text-center animate-fade-in">
         {/* Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass">
           <span className="text-4xl">📝</span>
         </div>
 
