@@ -119,10 +119,10 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="px-4 py-8 space-y-6 max-w-lg mx-auto">
+    <div className="min-h-screen bg-background pb-24">
+      <div className="px-4 py-8 space-y-6 max-w-lg mx-auto animate-fade-in">
         {/* Profile Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 glass p-4 rounded-2xl">
           {profile?.avatar_url ? (
             <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover" />
           ) : (
