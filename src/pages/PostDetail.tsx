@@ -223,7 +223,7 @@ export default function PostDetail() {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Writer Interests ({interests.length})</h3>
             {interests.map(i => (
-              <div key={i.id} className="p-3 rounded-xl bg-card border border-border flex items-center justify-between gap-3">
+              <div key={i.id} className="p-3 rounded-xl glass flex items-center justify-between gap-3">
                 <button
                   onClick={() => navigate(`/writer/${i.writer_id}`)}
                   className="flex items-center gap-2 min-w-0 active:scale-[0.98] transition-transform"
