@@ -168,7 +168,7 @@ export default function Profile() {
         </div>
 
         {/* Writing Samples */}
-        <div className="space-y-3">
+        <div className="space-y-3 glass p-4 rounded-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Handwriting Samples</h2>
             <button
