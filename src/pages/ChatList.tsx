@@ -91,7 +91,7 @@ export default function ChatList() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-4">
+      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 py-4">
         <h1 className="text-xl font-bold text-foreground">Messages</h1>
       </div>
 
