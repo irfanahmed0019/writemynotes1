@@ -135,7 +135,7 @@ export default function PostDetail() {
         <h1 className="text-lg font-bold text-foreground truncate">Request Details</h1>
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
+      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto animate-fade-in">
         {/* Request Info */}
         <div className="space-y-4">
           <div>

@@ -202,7 +202,7 @@ export default function Chat() {
       </div>
 
       {/* Input — raised and larger */}
-      <div className="shrink-0 border-t border-border bg-background px-4 pt-4 pb-12">
+      <div className="shrink-0 border-t border-border glass-strong px-4 pt-4 pb-12">
         <div className="flex items-center gap-2.5">
           <input
             value={newMessage}

@@ -84,8 +84,8 @@ export default function BottomNav() {
   }, [user]);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-t-2xl">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-t-2xl pb-1">
+      <div className="flex items-center justify-around h-14 max-w-lg mx-auto -mt-1">
         {tabs.map(tab => {
           const active = location.pathname.startsWith(tab.path);
           const showBadge = (tab.path === '/chats' && unreadTotal > 0) || (tab.path === '/activity' && activityCount > 0);

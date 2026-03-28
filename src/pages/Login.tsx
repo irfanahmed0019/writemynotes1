@@ -49,7 +49,7 @@ export default function Login() {
         <button
           onClick={handleGoogleLogin}
           disabled={signingIn}
-          className="w-full flex items-center justify-center gap-3 h-14 rounded-xl bg-foreground text-background font-semibold text-base transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/10 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 h-14 rounded-xl glass-strong text-foreground font-semibold text-base transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/10 disabled:opacity-50"
         >
           {signingIn ? (
             <Loader2 className="h-5 w-5 animate-spin" />

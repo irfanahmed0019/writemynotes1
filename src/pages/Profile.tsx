@@ -201,7 +201,7 @@ export default function Profile() {
         </div>
 
         {/* My Requests */}
-        <div className="space-y-3">
+        <div className="space-y-3 glass p-4 rounded-2xl">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">My Requests</h2>
           {myRequests.length === 0 ? (
             <div className="text-center py-8 space-y-2">

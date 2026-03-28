@@ -157,7 +157,7 @@ export default function WriterProfile() {
         <span className="font-semibold text-foreground">{profile?.full_name || 'Profile'}</span>
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
+      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto animate-fade-in">
         {/* Avatar + Info */}
         <div className="flex flex-col items-center text-center space-y-3">
           {profile?.avatar_url ? (
