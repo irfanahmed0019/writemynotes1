@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, FileText, Clock, Home, ExternalLink } from 'lucide-react';
+import { BookOpen, FileText, Home, ExternalLink } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 type StudyConfig = { id: string; semester_label: string; timetable_url: string };
 type StudySubject = { id: string; name: string; notes_url: string; papers_url: string; sort_order: number };
-type SubTab = 'home' | 'papers' | 'notes' | 'timetable';
+type SubTab = 'home' | 'papers' | 'notes';
 
 export default function Study() {
   const [config, setConfig] = useState<StudyConfig | null>(null);
@@ -33,26 +33,36 @@ export default function Study() {
     { key: 'home', label: 'Home', icon: Home },
     { key: 'papers', label: 'Papers', icon: FileText },
     { key: 'notes', label: 'Notes', icon: BookOpen },
-    { key: 'timetable', label: 'Timetable', icon: Clock },
   ];
 
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 pt-4 pb-3">
-        <div className="flex items-center gap-2 mb-3">
-          <BookOpen className="w-5 h-5 text-primary" />
-          <h1 className="text-xl font-bold text-foreground">
-            Polytechnic Notes {config ? `(${config.semester_label})` : ''}
-          </h1>
+      <div className="sticky top-0 z-10 glass-strong px-4 pt-5 pb-3">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-xl bg-foreground/10 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-foreground" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-foreground tracking-tight">
+              Poly Notes
+            </h1>
+            {config && (
+              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-widest">
+                {config.semester_label}
+              </p>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {subTabs.map(t => (
             <button
               key={t.key}
               onClick={() => setSubTab(t.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                subTab === t.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                subTab === t.key
+                  ? 'bg-foreground text-background'
+                  : 'glass text-muted-foreground hover:text-foreground'
               }`}
             >
               <t.icon className="w-3.5 h-3.5" />
@@ -62,28 +72,35 @@ export default function Study() {
         </div>
       </div>
 
-      <div className="px-4 py-4 max-w-2xl mx-auto space-y-3">
+      <div className="px-4 py-5 max-w-2xl mx-auto space-y-3">
         {/* Home */}
         {subTab === 'home' && (
           <>
             <p className="text-sm text-muted-foreground mb-4">
-              Access all your semester {config?.semester_label || ''} resources — notes, previous papers, and timetable.
+              All your {config?.semester_label || ''} resources in one place ✦
             </p>
             {subjects.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">
-                No subjects added yet. Admin can add them from the dashboard.
-              </p>
+              <div className="glass rounded-2xl p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No subjects yet. Admin will add them soon.
+                </p>
+              </div>
             ) : (
-              subjects.map(s => (
-                <div key={s.id} className="p-4 rounded-xl bg-card border border-border">
-                  <h3 className="font-semibold text-sm text-foreground mb-2">{s.name}</h3>
+              subjects.map((s, i) => (
+                <div key={s.id} className="glass rounded-2xl p-4 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-foreground/10 flex items-center justify-center text-sm font-bold text-foreground">
+                      {String(i + 1).padStart(2, '0')}
+                    </div>
+                    <h3 className="font-semibold text-sm text-foreground">{s.name}</h3>
+                  </div>
                   <div className="flex gap-2">
                     {s.notes_url && (
                       <a
                         href={s.notes_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-foreground text-background text-xs font-semibold transition-all hover:opacity-90"
                       >
                         <BookOpen className="w-3 h-3" /> Notes <ExternalLink className="w-3 h-3" />
                       </a>
@@ -93,7 +110,7 @@ export default function Study() {
                         href={s.papers_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-secondary text-foreground text-xs font-medium"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass text-foreground text-xs font-semibold transition-all hover:opacity-90"
                       >
                         <FileText className="w-3 h-3" /> Papers <ExternalLink className="w-3 h-3" />
                       </a>
@@ -110,19 +127,21 @@ export default function Study() {
           <>
             <h2 className="text-lg font-bold text-foreground">Notes</h2>
             {subjects.filter(s => s.notes_url).length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">No notes available yet.</p>
+              <div className="glass rounded-2xl p-8 text-center">
+                <p className="text-sm text-muted-foreground">No notes available yet.</p>
+              </div>
             ) : (
-              subjects.filter(s => s.notes_url).map(s => (
+              subjects.filter(s => s.notes_url).map((s, i) => (
                 <a
                   key={s.id}
                   href={s.notes_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.99] transition-transform"
+                  className="flex items-center justify-between p-4 rounded-2xl glass active:scale-[0.99] transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-xl bg-foreground/10 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-foreground" />
                     </div>
                     <span className="font-medium text-sm text-foreground">{s.name}</span>
                   </div>
@@ -138,7 +157,9 @@ export default function Study() {
           <>
             <h2 className="text-lg font-bold text-foreground">Previous Papers</h2>
             {subjects.filter(s => s.papers_url).length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">No papers available yet.</p>
+              <div className="glass rounded-2xl p-8 text-center">
+                <p className="text-sm text-muted-foreground">No papers available yet.</p>
+              </div>
             ) : (
               subjects.filter(s => s.papers_url).map(s => (
                 <a
@@ -146,10 +167,10 @@ export default function Study() {
                   href={s.papers_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.99] transition-transform"
+                  className="flex items-center justify-between p-4 rounded-2xl glass active:scale-[0.99] transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-foreground/10 flex items-center justify-center">
                       <FileText className="w-5 h-5 text-foreground" />
                     </div>
                     <span className="font-medium text-sm text-foreground">{s.name}</span>
@@ -157,33 +178,6 @@ export default function Study() {
                   <ExternalLink className="w-4 h-4 text-muted-foreground" />
                 </a>
               ))
-            )}
-          </>
-        )}
-
-        {/* Timetable */}
-        {subTab === 'timetable' && (
-          <>
-            <h2 className="text-lg font-bold text-foreground">Timetable</h2>
-            {config?.timetable_url ? (
-              <a
-                href={config.timetable_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.99] transition-transform"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="font-medium text-sm text-foreground">
-                    View {config.semester_label} Timetable
-                  </span>
-                </div>
-                <ExternalLink className="w-4 h-4 text-muted-foreground" />
-              </a>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-12">No timetable link set yet.</p>
             )}
           </>
         )}
