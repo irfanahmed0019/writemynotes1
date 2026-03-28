@@ -129,7 +129,7 @@ export default function Marketplace() {
             <button
               key={r.id}
               onClick={() => navigate(`/post/${r.id}`)}
-              className="w-full text-left p-4 rounded-xl bg-card border border-border space-y-3 active:scale-[0.99] transition-transform"
+              className="w-full text-left p-4 rounded-xl glass space-y-3 active:scale-[0.99] transition-transform"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">
