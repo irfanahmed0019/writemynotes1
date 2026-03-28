@@ -128,14 +128,14 @@ export default function PostDetail() {
   return (
     <div className="min-h-screen bg-background pb-8">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1 active:scale-[0.95] transition-transform">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="text-lg font-bold text-foreground truncate">Request Details</h1>
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
+      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto animate-fade-in">
         {/* Request Info */}
         <div className="space-y-4">
           <div>
@@ -151,17 +151,17 @@ export default function PostDetail() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-xl bg-card border border-border text-center space-y-1">
+            <div className="p-3 rounded-xl glass text-center space-y-1">
               <IndianRupee className="w-4 h-4 mx-auto text-primary" />
               <p className="text-lg font-bold text-foreground">₹{request.budget}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Budget</p>
             </div>
-            <div className="p-3 rounded-xl bg-card border border-border text-center space-y-1">
+            <div className="p-3 rounded-xl glass text-center space-y-1">
               <FileText className="w-4 h-4 mx-auto text-primary" />
               <p className="text-lg font-bold text-foreground">{request.pages || '—'}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pages</p>
             </div>
-            <div className="p-3 rounded-xl bg-card border border-border text-center space-y-1">
+            <div className="p-3 rounded-xl glass text-center space-y-1">
               <Calendar className="w-4 h-4 mx-auto text-primary" />
               <p className="text-sm font-bold text-foreground">{format(new Date(request.deadline), 'MMM d')}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Deadline</p>
@@ -169,7 +169,7 @@ export default function PostDetail() {
           </div>
 
           {request.description && (
-            <div className="p-4 rounded-xl bg-card border border-border">
+            <div className="p-4 rounded-xl glass">
               <p className="text-sm text-muted-foreground leading-relaxed">{request.description}</p>
             </div>
           )}
@@ -177,7 +177,7 @@ export default function PostDetail() {
           {/* Posted by */}
           <button
             onClick={() => navigate(`/writer/${request.user_id}`)}
-            className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border w-full active:scale-[0.98] transition-transform"
+            className="flex items-center gap-3 p-3 rounded-xl glass w-full active:scale-[0.98] transition-transform"
           >
             {request.profiles?.avatar_url ? (
               <img src={request.profiles.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
@@ -223,7 +223,7 @@ export default function PostDetail() {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Writer Interests ({interests.length})</h3>
             {interests.map(i => (
-              <div key={i.id} className="p-3 rounded-xl bg-card border border-border flex items-center justify-between gap-3">
+              <div key={i.id} className="p-3 rounded-xl glass flex items-center justify-between gap-3">
                 <button
                   onClick={() => navigate(`/writer/${i.writer_id}`)}
                   className="flex items-center gap-2 min-w-0 active:scale-[0.98] transition-transform"

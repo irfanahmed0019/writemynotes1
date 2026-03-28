@@ -36,9 +36,9 @@ export default function Install() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6">
-      <div className="w-full max-w-sm space-y-8 text-center">
+      <div className="w-full max-w-sm space-y-8 text-center animate-fade-in">
         {/* Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass">
           <span className="text-4xl">📝</span>
         </div>
 
@@ -65,7 +65,7 @@ export default function Install() {
             Install App
           </button>
         ) : isIOS ? (
-          <div className="space-y-4 p-5 rounded-2xl bg-card border border-border text-left">
+          <div className="space-y-4 p-5 rounded-2xl glass text-left">
             <p className="text-sm font-medium text-foreground">To install on iPhone:</p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
@@ -89,7 +89,7 @@ export default function Install() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4 p-5 rounded-2xl bg-card border border-border text-left">
+          <div className="space-y-4 p-5 rounded-2xl glass text-left">
             <p className="text-sm font-medium text-foreground">To install on Android:</p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">

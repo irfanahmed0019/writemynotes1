@@ -119,10 +119,10 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="px-4 py-8 space-y-6 max-w-lg mx-auto">
+    <div className="min-h-screen bg-background pb-24">
+      <div className="px-4 py-8 space-y-6 max-w-lg mx-auto animate-fade-in">
         {/* Profile Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 glass p-4 rounded-2xl">
           {profile?.avatar_url ? (
             <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover" />
           ) : (
@@ -142,7 +142,7 @@ export default function Profile() {
         </div>
 
         {/* Bio */}
-        <div className="space-y-2">
+        <div className="space-y-2 glass p-4 rounded-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Bio</h2>
             <button onClick={() => setEditingBio(!editingBio)} className="p-1 active:scale-[0.95] transition-transform">
@@ -168,7 +168,7 @@ export default function Profile() {
         </div>
 
         {/* Writing Samples */}
-        <div className="space-y-3">
+        <div className="space-y-3 glass p-4 rounded-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Handwriting Samples</h2>
             <button
@@ -201,7 +201,7 @@ export default function Profile() {
         </div>
 
         {/* My Requests */}
-        <div className="space-y-3">
+        <div className="space-y-3 glass p-4 rounded-2xl">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">My Requests</h2>
           {myRequests.length === 0 ? (
             <div className="text-center py-8 space-y-2">

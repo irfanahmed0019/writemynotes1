@@ -68,9 +68,9 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24 animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 pt-4 pb-3">
+      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-bold text-foreground">Marketplace</h1>
           <button
@@ -129,7 +129,7 @@ export default function Marketplace() {
             <button
               key={r.id}
               onClick={() => navigate(`/post/${r.id}`)}
-              className="w-full text-left p-4 rounded-xl bg-card border border-border space-y-3 active:scale-[0.99] transition-transform"
+              className="w-full text-left p-4 rounded-xl glass space-y-3 active:scale-[0.99] transition-transform"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">

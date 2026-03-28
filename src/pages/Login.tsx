@@ -31,10 +31,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6">
-      <div className="w-full max-w-sm space-y-8">
+      <div className="w-full max-w-sm space-y-8 animate-fade-in">
         {/* Brand */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-2">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass mb-2">
             <span className="text-3xl">📝</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground" style={{ lineHeight: '1.1' }}>
@@ -49,7 +49,7 @@ export default function Login() {
         <button
           onClick={handleGoogleLogin}
           disabled={signingIn}
-          className="w-full flex items-center justify-center gap-3 h-14 rounded-xl bg-foreground text-background font-semibold text-base transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/10 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 h-14 rounded-xl glass-strong text-foreground font-semibold text-base transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/10 disabled:opacity-50"
         >
           {signingIn ? (
             <Loader2 className="h-5 w-5 animate-spin" />

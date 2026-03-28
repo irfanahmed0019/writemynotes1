@@ -155,7 +155,7 @@ export default function Chat() {
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="shrink-0 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="shrink-0 glass-strong border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate('/chats')} className="p-1 active:scale-[0.95] transition-transform">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
@@ -179,7 +179,7 @@ export default function Chat() {
                 className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${
                   isMine
                     ? 'bg-primary text-primary-foreground rounded-br-md'
-                    : 'bg-card border border-border text-foreground rounded-bl-md'
+                    : 'glass text-foreground rounded-bl-md'
                 }`}
               >
                 <p className="break-words" style={{ overflowWrap: 'break-word' }}>{m.content}</p>
@@ -202,7 +202,7 @@ export default function Chat() {
       </div>
 
       {/* Input — raised and larger */}
-      <div className="shrink-0 border-t border-border bg-background px-4 pt-4 pb-12">
+      <div className="shrink-0 border-t border-border glass-strong px-4 pt-4 pb-12">
         <div className="flex items-center gap-2.5">
           <input
             value={newMessage}

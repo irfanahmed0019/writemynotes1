@@ -150,14 +150,14 @@ export default function WriterProfile() {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1 active:scale-[0.95] transition-transform">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <span className="font-semibold text-foreground">{profile?.full_name || 'Profile'}</span>
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto">
+      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto animate-fade-in">
         {/* Avatar + Info */}
         <div className="flex flex-col items-center text-center space-y-3">
           {profile?.avatar_url ? (
@@ -177,7 +177,7 @@ export default function WriterProfile() {
 
         {/* Bio */}
         {profile?.bio && (
-          <div className="p-4 rounded-xl bg-card border border-border">
+          <div className="p-4 rounded-xl glass">
             <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
           </div>
         )}
