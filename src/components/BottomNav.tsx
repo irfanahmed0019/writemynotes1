@@ -84,7 +84,7 @@ export default function BottomNav() {
   }, [user]);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border">
+    <div className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-t-2xl">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {tabs.map(tab => {
           const active = location.pathname.startsWith(tab.path);
@@ -94,19 +94,20 @@ export default function BottomNav() {
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className={`relative flex flex-col items-center gap-0.5 py-1 px-4 transition-colors active:scale-[0.95] ${
-                active ? 'text-primary' : 'text-muted-foreground'
+              className={`relative flex flex-col items-center gap-0.5 py-1 px-4 transition-all active:scale-[0.9] ${
+                active ? 'text-foreground' : 'text-muted-foreground'
               }`}
             >
               <div className="relative">
-                <tab.icon className="w-5 h-5" />
+                <tab.icon className={`w-5 h-5 ${active ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : ''}`} />
                 {showBadge && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-foreground text-background text-[9px] font-bold flex items-center justify-center">
                     {badgeCount > 99 ? '99+' : badgeCount}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium">{tab.label}</span>
+              <span className={`text-[10px] font-medium ${active ? 'text-foreground' : ''}`}>{tab.label}</span>
+              {active && <div className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-foreground" />}
             </button>
           );
         })}
