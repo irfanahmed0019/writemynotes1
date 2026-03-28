@@ -177,7 +177,7 @@ export default function WriterProfile() {
 
         {/* Bio */}
         {profile?.bio && (
-          <div className="p-4 rounded-xl bg-card border border-border">
+          <div className="p-4 rounded-xl glass">
             <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
           </div>
         )}
