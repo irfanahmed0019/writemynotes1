@@ -97,7 +97,7 @@ export default function Activity() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3">
+      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 py-3">
         <h1 className="text-lg font-bold text-foreground">Activity</h1>
       </div>
 
