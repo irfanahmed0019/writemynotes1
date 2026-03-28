@@ -150,7 +150,7 @@ export default function WriterProfile() {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1 active:scale-[0.95] transition-transform">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
