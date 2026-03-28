@@ -70,7 +70,7 @@ export default function Marketplace() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 pt-4 pb-3">
+      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-bold text-foreground">Marketplace</h1>
           <button
