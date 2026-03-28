@@ -142,7 +142,7 @@ export default function Profile() {
         </div>
 
         {/* Bio */}
-        <div className="space-y-2">
+        <div className="space-y-2 glass p-4 rounded-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Bio</h2>
             <button onClick={() => setEditingBio(!editingBio)} className="p-1 active:scale-[0.95] transition-transform">
