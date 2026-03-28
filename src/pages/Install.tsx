@@ -65,7 +65,7 @@ export default function Install() {
             Install App
           </button>
         ) : isIOS ? (
-          <div className="space-y-4 p-5 rounded-2xl bg-card border border-border text-left">
+          <div className="space-y-4 p-5 rounded-2xl glass text-left">
             <p className="text-sm font-medium text-foreground">To install on iPhone:</p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
