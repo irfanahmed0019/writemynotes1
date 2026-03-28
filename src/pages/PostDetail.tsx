@@ -151,17 +151,17 @@ export default function PostDetail() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-xl bg-card border border-border text-center space-y-1">
+            <div className="p-3 rounded-xl glass text-center space-y-1">
               <IndianRupee className="w-4 h-4 mx-auto text-primary" />
               <p className="text-lg font-bold text-foreground">₹{request.budget}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Budget</p>
             </div>
-            <div className="p-3 rounded-xl bg-card border border-border text-center space-y-1">
+            <div className="p-3 rounded-xl glass text-center space-y-1">
               <FileText className="w-4 h-4 mx-auto text-primary" />
               <p className="text-lg font-bold text-foreground">{request.pages || '—'}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Pages</p>
             </div>
-            <div className="p-3 rounded-xl bg-card border border-border text-center space-y-1">
+            <div className="p-3 rounded-xl glass text-center space-y-1">
               <Calendar className="w-4 h-4 mx-auto text-primary" />
               <p className="text-sm font-bold text-foreground">{format(new Date(request.deadline), 'MMM d')}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Deadline</p>
