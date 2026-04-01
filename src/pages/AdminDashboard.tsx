@@ -58,6 +58,8 @@ export default function AdminDashboard() {
   const [timetableUrl, setTimetableUrl] = useState('');
   const [newSubject, setNewSubject] = useState({ name: '', notes_url: '', papers_url: '' });
   const [studySaving, setStudySaving] = useState(false);
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [notesText, setNotesText] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -152,14 +154,14 @@ export default function AdminDashboard() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-2 border-foreground/30 border-t-transparent rounded-full" />
     </div>
   );
   if (!user) return <Navigate to="/login" replace />;
   if (isAdmin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-foreground/30 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -205,6 +207,13 @@ export default function AdminDashboard() {
     setStudySubjects(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
 
+  const saveNotes = async (id: string) => {
+    await supabase.from('study_subjects').update({ notes_content: notesText } as any).eq('id', id);
+    setStudySubjects(prev => prev.map(s => s.id === id ? { ...s, notes_content: notesText } : s));
+    setEditingNotes(null);
+    setNotesText('');
+  };
+
   const tabs: { key: Tab; label: string; icon: any; count: number }[] = [
     { key: 'users', label: 'Users', icon: Users, count: users.length },
     { key: 'posts', label: 'Posts', icon: FileText, count: posts.length },
@@ -214,28 +223,28 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-4 pt-4 pb-3">
+      <div className="sticky top-0 z-10 glass-strong px-4 pt-4 pb-3">
         <div className="flex items-center gap-3 mb-3">
-          <button onClick={() => navigate('/marketplace')} className="p-1">
+          <button onClick={() => navigate('/marketplace')} className="p-1.5 rounded-xl glass-button">
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <Shield className="w-5 h-5 text-primary" />
+          <Shield className="w-5 h-5 text-foreground/60" />
           <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
         </div>
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => { setTab(t.key); setSelectedChat(null); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                tab === t.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                tab === t.key ? 'bg-foreground text-background' : 'glass-button text-foreground/40'
               }`}
             >
               <t.icon className="w-3.5 h-3.5" />
               {t.label}
               {t.count > 0 && (
                 <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                  tab === t.key ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  tab === t.key ? 'bg-background/20 text-background' : 'glass-subtle text-foreground/40'
                 }`}>
                   {t.count}
                 </span>
@@ -245,59 +254,59 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="px-4 py-3 space-y-3 max-w-2xl mx-auto">
+      <div className="px-4 py-3 space-y-3 max-w-2xl mx-auto animate-fade-in">
         {/* Users Tab */}
         {tab === 'users' && users.map(u => (
-          <div key={u.user_id} className="p-4 rounded-xl bg-card border border-border space-y-2">
+          <div key={u.user_id} className="p-4 rounded-2xl glass space-y-2">
             <div className="flex items-center gap-3">
               {u.avatar_url ? (
                 <img src={u.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
+                <div className="w-10 h-10 rounded-full glass-strong flex items-center justify-center text-sm font-bold text-foreground">
                   {u.full_name?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-foreground truncate">{u.full_name || 'No name'}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="font-bold text-sm text-foreground truncate">{u.full_name || 'No name'}</p>
+                <p className="text-xs text-foreground/30">
                   {u.mode && <span className="capitalize">{u.mode} • </span>}
                   Joined {formatDistanceToNow(new Date(u.created_at), { addSuffix: true })}
                 </p>
               </div>
               <button
                 onClick={() => navigate(`/writer/${u.user_id}`)}
-                className="flex items-center gap-1 h-8 px-3 rounded-lg bg-secondary text-foreground text-xs font-medium"
+                className="flex items-center gap-1 h-8 px-3 rounded-xl glass-button text-foreground/60 text-xs font-bold"
               >
                 <Eye className="w-3 h-3" />
                 View
               </button>
             </div>
-            {u.bio && <p className="text-xs text-muted-foreground line-clamp-2">{u.bio}</p>}
+            {u.bio && <p className="text-xs text-foreground/40 line-clamp-2">{u.bio}</p>}
           </div>
         ))}
 
         {/* Posts Tab */}
         {tab === 'posts' && posts.map(p => (
-          <div key={p.id} className="p-4 rounded-xl bg-card border border-border space-y-2">
+          <div key={p.id} className="p-4 rounded-2xl glass space-y-2">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm text-foreground truncate">{p.title}</h3>
-                <p className="text-xs text-muted-foreground">
+                <h3 className="font-bold text-sm text-foreground truncate">{p.title}</h3>
+                <p className="text-xs text-foreground/30">
                   {p.subject} • ₹{p.budget} • {p.pages || '—'} pages
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-foreground/30">
                   By {p.profiles?.full_name || 'Unknown'} • {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
-                  p.status === 'open' ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
+                <span className={`px-2 py-0.5 rounded-xl text-xs font-bold ${
+                  p.status === 'open' ? 'bg-foreground/10 text-foreground/60' : 'glass-subtle text-foreground/40'
                 }`}>
                   {p.status}
                 </span>
                 <button
                   onClick={() => deletePost(p.id)}
-                  className="flex items-center gap-1 h-8 px-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium active:scale-[0.97] transition-transform"
+                  className="flex items-center gap-1 h-8 px-3 rounded-xl bg-destructive/10 text-destructive text-xs font-bold active:scale-[0.97] transition-transform"
                 >
                   <Trash2 className="w-3 h-3" />
                   Delete
@@ -312,18 +321,18 @@ export default function AdminDashboard() {
           <button
             key={c.id}
             onClick={() => setSelectedChat(c.id)}
-            className="w-full text-left p-4 rounded-xl bg-card border border-border space-y-1 active:scale-[0.99] transition-transform"
+            className="w-full text-left p-4 rounded-2xl glass space-y-1 active:scale-[0.98] transition-transform"
           >
             <div className="flex items-center justify-between">
-              <p className="font-semibold text-sm text-foreground">
+              <p className="font-bold text-sm text-foreground">
                 {c.buyer_profile?.full_name || 'Unknown'} ↔ {c.seller_profile?.full_name || 'Unknown'}
               </p>
-              <span className="text-[10px] text-muted-foreground">{c.message_count} msgs</span>
+              <span className="text-[10px] text-foreground/30">{c.message_count} msgs</span>
             </div>
             {c.last_message && (
-              <p className="text-xs text-muted-foreground truncate">{c.last_message}</p>
+              <p className="text-xs text-foreground/40 truncate">{c.last_message}</p>
             )}
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] text-foreground/30">
               {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
             </p>
           </button>
@@ -331,28 +340,28 @@ export default function AdminDashboard() {
 
         {tab === 'chats' && selectedChat && (
           <div className="space-y-3">
-            <button onClick={() => setSelectedChat(null)} className="flex items-center gap-1 text-sm text-primary font-medium">
+            <button onClick={() => setSelectedChat(null)} className="flex items-center gap-1 text-sm text-foreground/60 font-bold">
               <ChevronLeft className="w-4 h-4" /> Back to chats
             </button>
             <div className="space-y-2">
               {chatMessages.map(m => (
-                <div key={m.id} className="p-3 rounded-xl bg-card border border-border">
+                <div key={m.id} className="p-3 rounded-2xl glass">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-semibold text-foreground">{m.sender_name}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs font-bold text-foreground">{m.sender_name}</p>
+                    <p className="text-[10px] text-foreground/30">
                       {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
                     </p>
                   </div>
-                  <p className="text-sm text-foreground">{m.content}</p>
+                  <p className="text-sm text-foreground/70">{m.content}</p>
                   {m.read_at && (
-                    <p className="text-[10px] text-muted-foreground mt-1">
+                    <p className="text-[10px] text-foreground/25 mt-1">
                       Read {formatDistanceToNow(new Date(m.read_at), { addSuffix: true })}
                     </p>
                   )}
                 </div>
               ))}
               {chatMessages.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">No messages in this conversation</p>
+                <p className="text-sm text-foreground/40 text-center py-8">No messages in this conversation</p>
               )}
             </div>
           </div>
@@ -362,30 +371,21 @@ export default function AdminDashboard() {
         {tab === 'study' && (
           <div className="space-y-4">
             {/* Config */}
-            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
-              <h3 className="font-semibold text-sm text-foreground">Semester Settings</h3>
+            <div className="p-4 rounded-2xl glass space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Semester Settings</h3>
               <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Semester Label</label>
+                <label className="text-xs text-foreground/40 font-bold">Semester Label</label>
                 <input
                   value={semesterLabel}
                   onChange={e => setSemesterLabel(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
+                  className="w-full px-3 py-2 rounded-xl glass-input text-sm text-foreground"
                   placeholder="e.g. S1, S2"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Timetable URL</label>
-                <input
-                  value={timetableUrl}
-                  onChange={e => setTimetableUrl(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground"
-                  placeholder="Google Drive link"
                 />
               </div>
               <button
                 onClick={saveStudyConfig}
                 disabled={studySaving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-foreground text-background text-xs font-bold"
               >
                 <Save className="w-3.5 h-3.5" />
                 {studySaving ? 'Saving...' : 'Save Settings'}
@@ -393,58 +393,102 @@ export default function AdminDashboard() {
             </div>
 
             {/* Subjects */}
-            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
-              <h3 className="font-semibold text-sm text-foreground">Subjects</h3>
+            <div className="p-4 rounded-2xl glass space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Subjects</h3>
               {studySubjects.map(s => (
-                <div key={s.id} className="p-3 rounded-lg bg-secondary space-y-2">
+                <div key={s.id} className="p-3 rounded-xl glass-subtle space-y-2">
                   <div className="flex items-center justify-between">
                     <input
                       defaultValue={s.name}
                       onBlur={e => updateSubject(s.id, 'name', e.target.value)}
-                      className="font-medium text-sm text-foreground bg-transparent border-none outline-none flex-1"
+                      className="font-bold text-sm text-foreground bg-transparent border-none outline-none flex-1"
                     />
-                    <button onClick={() => deleteSubject(s.id)} className="text-destructive">
+                    <button onClick={() => deleteSubject(s.id)} className="text-destructive p-1">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                   <input
                     defaultValue={s.notes_url}
                     onBlur={e => updateSubject(s.id, 'notes_url', e.target.value)}
-                    className="w-full px-2 py-1 rounded bg-background border border-border text-xs text-foreground"
-                    placeholder="Notes URL"
+                    className="w-full px-2 py-1 rounded-lg glass-input text-xs text-foreground"
+                    placeholder="Notes URL (optional, fallback)"
                   />
                   <input
                     defaultValue={s.papers_url}
                     onBlur={e => updateSubject(s.id, 'papers_url', e.target.value)}
-                    className="w-full px-2 py-1 rounded bg-background border border-border text-xs text-foreground"
+                    className="w-full px-2 py-1 rounded-lg glass-input text-xs text-foreground"
                     placeholder="Papers URL"
                   />
+                  
+                  {/* Notes Content Editor */}
+                  <div className="space-y-1.5 pt-1 border-t border-foreground/5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider">Written Notes</label>
+                      {editingNotes !== s.id ? (
+                        <button
+                          onClick={() => { setEditingNotes(s.id); setNotesText(s.notes_content || ''); }}
+                          className="text-[10px] text-foreground/50 font-bold px-2 py-0.5 rounded-lg glass-button"
+                        >
+                          {s.notes_content ? 'Edit' : 'Write Notes'}
+                        </button>
+                      ) : (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => saveNotes(s.id)}
+                            className="text-[10px] text-background font-bold px-2 py-0.5 rounded-lg bg-foreground"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => { setEditingNotes(null); setNotesText(''); }}
+                            className="text-[10px] text-foreground/50 font-bold px-2 py-0.5 rounded-lg glass-button"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {editingNotes === s.id ? (
+                      <div className="space-y-1">
+                        <textarea
+                          value={notesText}
+                          onChange={e => setNotesText(e.target.value)}
+                          rows={12}
+                          className="w-full px-3 py-2 rounded-xl glass-input text-sm text-foreground font-mono resize-y"
+                          placeholder={"# Chapter Title\n\nWrite notes using markdown-like formatting:\n\n## Section heading\n\n**Bold text** for important terms\n*Italic text* for emphasis\n\n- Bullet point 1\n- Bullet point 2\n\n> Blockquote for definitions\n\n`code` for formulas"}
+                        />
+                        <p className="text-[9px] text-foreground/25">Supports # headers, **bold**, *italic*, - lists, {'>'} quotes, `code`</p>
+                      </div>
+                    ) : s.notes_content ? (
+                      <p className="text-[10px] text-foreground/30 line-clamp-2">{s.notes_content.slice(0, 100)}...</p>
+                    ) : null}
+                  </div>
                 </div>
               ))}
 
               {/* Add new */}
-              <div className="p-3 rounded-lg border border-dashed border-border space-y-2">
+              <div className="p-3 rounded-xl border border-dashed border-foreground/10 space-y-2">
                 <input
                   value={newSubject.name}
                   onChange={e => setNewSubject(p => ({ ...p, name: e.target.value }))}
-                  className="w-full px-2 py-1.5 rounded bg-secondary border border-border text-sm text-foreground"
+                  className="w-full px-2 py-1.5 rounded-xl glass-input text-sm text-foreground"
                   placeholder="Subject name"
                 />
                 <input
                   value={newSubject.notes_url}
                   onChange={e => setNewSubject(p => ({ ...p, notes_url: e.target.value }))}
-                  className="w-full px-2 py-1 rounded bg-secondary border border-border text-xs text-foreground"
-                  placeholder="Notes URL"
+                  className="w-full px-2 py-1 rounded-xl glass-input text-xs text-foreground"
+                  placeholder="Notes URL (optional)"
                 />
                 <input
                   value={newSubject.papers_url}
                   onChange={e => setNewSubject(p => ({ ...p, papers_url: e.target.value }))}
-                  className="w-full px-2 py-1 rounded bg-secondary border border-border text-xs text-foreground"
+                  className="w-full px-2 py-1 rounded-xl glass-input text-xs text-foreground"
                   placeholder="Papers URL"
                 />
                 <button
                   onClick={addSubject}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-foreground text-background text-xs font-bold"
                 >
                   <Plus className="w-3.5 h-3.5" /> Add Subject
                 </button>
