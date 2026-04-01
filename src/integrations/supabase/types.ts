@@ -223,6 +223,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          notes_content: string | null
           notes_url: string | null
           papers_url: string | null
           sort_order: number
@@ -232,6 +233,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          notes_content?: string | null
           notes_url?: string | null
           papers_url?: string | null
           sort_order?: number
@@ -241,6 +243,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          notes_content?: string | null
           notes_url?: string | null
           papers_url?: string | null
           sort_order?: number
