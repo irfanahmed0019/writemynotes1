@@ -31,7 +31,6 @@ export default function Marketplace() {
 
   useEffect(() => {
     if (!user) return;
-
     const fetchRequests = async () => {
       const { data } = await supabase
         .from('requests')
@@ -40,14 +39,11 @@ export default function Marketplace() {
         .order('created_at', { ascending: false });
       if (data) setRequests(data as any);
     };
-
     fetchRequests();
-
     const channel = supabase
       .channel('requests-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'requests' }, () => fetchRequests())
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
@@ -70,12 +66,12 @@ export default function Marketplace() {
   return (
     <div className="min-h-screen bg-background pb-24 animate-fade-in">
       {/* Header */}
-      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 pt-4 pb-3">
+      <div className="sticky top-0 z-10 glass-strong px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-bold text-foreground">Marketplace</h1>
           <button
             onClick={() => navigate('/post')}
-            className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-primary text-primary-foreground font-medium text-sm active:scale-[0.97] transition-transform"
+            className="flex items-center gap-1.5 h-9 px-4 rounded-xl bg-foreground text-background font-semibold text-sm active:scale-[0.97] transition-transform"
           >
             <Plus className="w-4 h-4" />
             Post
@@ -83,13 +79,13 @@ export default function Marketplace() {
         </div>
 
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30" />
           <input
             type="text"
             placeholder="Search requests..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-10 pr-4 rounded-lg bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full h-10 pl-10 pr-4 rounded-xl glass-input text-foreground text-sm placeholder:text-foreground/30"
           />
         </div>
 
@@ -98,10 +94,10 @@ export default function Marketplace() {
             <button
               key={s}
               onClick={() => setSelectedSubject(s)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 selectedSubject === s
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-muted-foreground hover:text-foreground'
+                  ? 'bg-foreground text-background'
+                  : 'glass-button text-foreground/50'
               }`}
             >
               {s}
@@ -115,10 +111,10 @@ export default function Marketplace() {
         {filtered.length === 0 ? (
           <div className="text-center py-16 space-y-3">
             <p className="text-4xl">📭</p>
-            <p className="text-muted-foreground text-sm">No requests yet. Be the first!</p>
+            <p className="text-foreground/40 text-sm">No requests yet. Be the first!</p>
             <button
               onClick={() => navigate('/post')}
-              className="inline-flex items-center gap-1.5 h-10 px-5 rounded-lg bg-primary text-primary-foreground font-medium text-sm active:scale-[0.97] transition-transform"
+              className="inline-flex items-center gap-1.5 h-10 px-5 rounded-xl bg-foreground text-background font-semibold text-sm active:scale-[0.97] transition-transform"
             >
               <Plus className="w-4 h-4" />
               Post Request
@@ -129,27 +125,26 @@ export default function Marketplace() {
             <button
               key={r.id}
               onClick={() => navigate(`/post/${r.id}`)}
-              className="w-full text-left p-4 rounded-xl glass space-y-3 active:scale-[0.99] transition-transform"
+              className="w-full text-left p-4 rounded-2xl glass space-y-3 active:scale-[0.98] transition-transform"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">{r.title}</h3>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="px-2 py-0.5 rounded-md bg-secondary font-medium">{r.subject}</span>
+                  <h3 className="font-bold text-foreground truncate">{r.title}</h3>
+                  <div className="flex items-center gap-2 text-xs text-foreground/40">
+                    <span className="px-2 py-0.5 rounded-lg glass-subtle font-semibold text-foreground/60">{r.subject}</span>
                     <span className="flex items-center gap-0.5">
                       <Clock className="w-3 h-3" />
                       {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-primary font-bold text-lg shrink-0">
+                <div className="flex items-center gap-1 text-foreground font-bold text-lg shrink-0">
                   <IndianRupee className="w-4 h-4" />
                   {r.budget}
                 </div>
               </div>
 
-              {/* Pages + Deadline summary */}
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-3 text-xs text-foreground/40">
                 <span className="flex items-center gap-1">
                   <FileText className="w-3 h-3" />
                   {r.pages || '—'} pages
@@ -157,21 +152,21 @@ export default function Marketplace() {
               </div>
 
               {r.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">{r.description}</p>
+                <p className="text-sm text-foreground/50 line-clamp-2">{r.description}</p>
               )}
 
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-medium text-foreground">
+                  <div className="w-6 h-6 rounded-full glass-subtle flex items-center justify-center text-xs font-semibold text-foreground/70">
                     {r.profiles?.full_name?.[0]?.toUpperCase() || '?'}
                   </div>
-                  <span className="text-xs text-muted-foreground">{r.profiles?.full_name || 'Anonymous'}</span>
+                  <span className="text-xs text-foreground/40">{r.profiles?.full_name || 'Anonymous'}</span>
                 </div>
 
                 {r.user_id === user.id && (
                   <button
                     onClick={(e) => handleDelete(e, r.id)}
-                    className="flex items-center gap-1 h-8 px-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium active:scale-[0.97] transition-transform"
+                    className="flex items-center gap-1 h-8 px-3 rounded-xl bg-destructive/10 text-destructive text-xs font-semibold active:scale-[0.97] transition-transform"
                   >
                     <Trash2 className="w-3 h-3" />
                     Delete

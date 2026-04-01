@@ -11,7 +11,7 @@ export default function Login() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-foreground/40" />
       </div>
     );
   }
@@ -31,16 +31,16 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6">
-      <div className="w-full max-w-sm space-y-8 animate-fade-in">
+      <div className="w-full max-w-sm space-y-10 animate-fade-in">
         {/* Brand */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl glass mb-2">
-            <span className="text-3xl">📝</span>
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl glass-strong">
+            <span className="text-4xl">📝</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground" style={{ lineHeight: '1.1' }}>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground" style={{ lineHeight: '1.05' }}>
             WriteMyNotes
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-foreground/40 text-sm">
             Get your records done. Or make money writing them.
           </p>
         </div>
@@ -49,7 +49,7 @@ export default function Login() {
         <button
           onClick={handleGoogleLogin}
           disabled={signingIn}
-          className="w-full flex items-center justify-center gap-3 h-14 rounded-xl glass-strong text-foreground font-semibold text-base transition-all active:scale-[0.97] hover:shadow-lg hover:shadow-primary/10 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-foreground text-background font-semibold text-base transition-all active:scale-[0.97] disabled:opacity-50"
         >
           {signingIn ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -66,7 +66,7 @@ export default function Login() {
           )}
         </button>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-foreground/30">
           By signing in, you agree to keep it real 🤙
         </p>
       </div>

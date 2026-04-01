@@ -107,7 +107,6 @@ export default function Profile() {
   };
 
   const deleteSample = async (sample: Sample) => {
-    // Extract path from URL
     const url = new URL(sample.image_url);
     const storagePath = url.pathname.split('/storage/v1/object/public/writing-samples/')[1];
     if (storagePath) {
@@ -120,21 +119,21 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-4 py-8 space-y-6 max-w-lg mx-auto animate-fade-in">
+      <div className="px-4 py-8 space-y-4 max-w-lg mx-auto animate-fade-in">
         {/* Profile Header */}
-        <div className="flex items-center gap-4 glass p-4 rounded-2xl">
+        <div className="flex items-center gap-4 glass rounded-2xl p-5">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover" />
+            <img src={profile.avatar_url} alt="" className="w-16 h-16 rounded-full object-cover ring-2 ring-foreground/10" />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-xl font-bold text-foreground">
+            <div className="w-16 h-16 rounded-full glass-strong flex items-center justify-center text-xl font-bold text-foreground">
               {profile?.full_name?.[0]?.toUpperCase() || '?'}
             </div>
           )}
           <div>
             <h1 className="text-xl font-bold text-foreground">{profile?.full_name || 'Student'}</h1>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+            <p className="text-sm text-foreground/40">{user.email}</p>
             {profile?.mode && (
-              <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-xs font-medium capitalize">
+              <span className="inline-block mt-1 px-2.5 py-0.5 rounded-lg glass-subtle text-foreground/60 text-xs font-semibold capitalize">
                 {profile.mode}
               </span>
             )}
@@ -142,11 +141,11 @@ export default function Profile() {
         </div>
 
         {/* Bio */}
-        <div className="space-y-2 glass p-4 rounded-2xl">
+        <div className="space-y-2 glass rounded-2xl p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Bio</h2>
-            <button onClick={() => setEditingBio(!editingBio)} className="p-1 active:scale-[0.95] transition-transform">
-              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            <h2 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Bio</h2>
+            <button onClick={() => setEditingBio(!editingBio)} className="p-1.5 rounded-lg glass-button">
+              <Pencil className="w-3.5 h-3.5 text-foreground/50" />
             </button>
           </div>
           {editingBio ? (
@@ -155,26 +154,26 @@ export default function Profile() {
                 value={bioText}
                 onChange={(e) => setBioText(e.target.value)}
                 rows={3}
-                placeholder="Tell people about yourself, your writing style..."
-                className="w-full px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring text-sm resize-none"
+                placeholder="Tell people about yourself..."
+                className="w-full px-4 py-3 rounded-xl glass-input text-foreground placeholder:text-foreground/30 text-sm resize-none"
               />
-              <button onClick={saveBio} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium active:scale-[0.97] transition-transform">
+              <button onClick={saveBio} className="h-9 px-4 rounded-xl bg-foreground text-background text-sm font-semibold active:scale-[0.97] transition-transform">
                 Save
               </button>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">{profile?.bio || 'No bio yet — tap the pencil to add one'}</p>
+            <p className="text-sm text-foreground/50">{profile?.bio || 'No bio yet — tap the pencil to add one'}</p>
           )}
         </div>
 
         {/* Writing Samples */}
-        <div className="space-y-3 glass p-4 rounded-2xl">
+        <div className="space-y-3 glass rounded-2xl p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Handwriting Samples</h2>
+            <h2 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Handwriting Samples</h2>
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="flex items-center gap-1 h-8 px-3 rounded-lg bg-primary/10 text-primary text-xs font-medium active:scale-[0.97] transition-transform disabled:opacity-50"
+              className="flex items-center gap-1 h-8 px-3 rounded-xl glass-button text-foreground/60 text-xs font-semibold disabled:opacity-50"
             >
               {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
               Upload
@@ -182,12 +181,12 @@ export default function Profile() {
             <input ref={fileRef} type="file" accept="image/*" onChange={uploadSample} className="hidden" />
           </div>
           {samples.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No samples yet — upload your handwriting</p>
+            <p className="text-sm text-foreground/40 text-center py-4">No samples yet — upload your handwriting</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {samples.map(s => (
                 <div key={s.id} className="relative group">
-                  <img src={s.image_url} alt="Sample" className="w-full aspect-[3/4] rounded-xl object-cover border border-border cursor-pointer" onClick={() => setPreviewUrl(s.image_url)} />
+                  <img src={s.image_url} alt="Sample" className="w-full aspect-[3/4] rounded-xl object-cover border border-foreground/10 cursor-pointer" onClick={() => setPreviewUrl(s.image_url)} />
                   <button
                     onClick={() => deleteSample(s)}
                     className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-destructive/90 text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity active:scale-[0.95]"
@@ -201,22 +200,22 @@ export default function Profile() {
         </div>
 
         {/* My Requests */}
-        <div className="space-y-3 glass p-4 rounded-2xl">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">My Requests</h2>
+        <div className="space-y-3 glass rounded-2xl p-5">
+          <h2 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">My Requests</h2>
           {myRequests.length === 0 ? (
             <div className="text-center py-8 space-y-2">
-              <Package className="w-8 h-8 text-muted-foreground mx-auto" />
-              <p className="text-sm text-muted-foreground">No requests yet</p>
+              <Package className="w-8 h-8 text-foreground/15 mx-auto" />
+              <p className="text-sm text-foreground/40">No requests yet</p>
             </div>
           ) : (
             myRequests.map(r => (
-              <div key={r.id} className="p-3 rounded-xl bg-card border border-border flex items-center justify-between">
+              <div key={r.id} className="p-3 rounded-xl glass-subtle flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-sm text-foreground">{r.title}</p>
-                  <p className="text-xs text-muted-foreground">{r.subject} • ₹{r.budget}</p>
+                  <p className="font-semibold text-sm text-foreground">{r.title}</p>
+                  <p className="text-xs text-foreground/40">{r.subject} • ₹{r.budget}</p>
                 </div>
-                <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
-                  r.status === 'open' ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
+                <span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${
+                  r.status === 'open' ? 'bg-foreground/10 text-foreground/70' : 'glass-subtle text-foreground/40'
                 }`}>
                   {r.status}
                 </span>
@@ -228,7 +227,7 @@ export default function Profile() {
         {/* Sign Out */}
         <button
           onClick={signOut}
-          className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-destructive/10 text-destructive font-medium text-sm active:scale-[0.97] transition-transform"
+          className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl glass-button text-destructive font-semibold text-sm"
         >
           <LogOut className="w-4 h-4" />
           Sign Out

@@ -58,7 +58,6 @@ export default function ChatList() {
         })
       );
 
-      // Deduplicate by other user — keep the one with the latest message/activity
       const deduped = Object.values(
         enriched.reduce((acc, c) => {
           const otherId = c.buyer_id === user.id ? c.seller_id : c.buyer_id;
@@ -91,15 +90,15 @@ export default function ChatList() {
 
   return (
     <div className="min-h-screen bg-background pb-24 animate-fade-in">
-      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 py-4">
+      <div className="sticky top-0 z-10 glass-strong px-4 py-4">
         <h1 className="text-xl font-bold text-foreground">Messages</h1>
       </div>
 
-      <div className="divide-y divide-border">
+      <div className="px-4 py-2 space-y-2">
         {conversations.length === 0 ? (
           <div className="text-center py-16 space-y-3">
-            <MessageCircle className="w-10 h-10 text-muted-foreground mx-auto" />
-            <p className="text-muted-foreground text-sm">No conversations yet</p>
+            <MessageCircle className="w-10 h-10 text-foreground/20 mx-auto" />
+            <p className="text-foreground/40 text-sm">No conversations yet</p>
           </div>
         ) : (
           conversations.map(c => {
@@ -108,32 +107,32 @@ export default function ChatList() {
               <button
                 key={c.id}
                 onClick={() => navigate(`/chat/${c.id}`)}
-                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-card/50 transition-colors text-left active:scale-[0.99] ${isRead ? 'opacity-60' : ''}`}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl glass transition-all text-left active:scale-[0.98] ${isRead ? 'opacity-50' : ''}`}
               >
                 <div className="relative shrink-0">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                  <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold ${
                     isRead
-                      ? 'bg-muted text-muted-foreground'
-                      : 'bg-primary/20 ring-2 ring-primary text-foreground'
+                      ? 'glass-subtle text-foreground/40'
+                      : 'bg-foreground/10 ring-2 ring-foreground/30 text-foreground'
                   }`}>
                     {c.other_name[0]?.toUpperCase() || '?'}
                   </div>
                   {c.unread_count > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground text-background text-[10px] font-bold flex items-center justify-center">
                       {c.unread_count > 9 ? '9+' : c.unread_count}
                     </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className={`text-sm truncate ${isRead ? 'font-normal text-muted-foreground' : 'font-bold text-foreground'}`}>{c.other_name}</p>
+                    <p className={`text-sm truncate ${isRead ? 'font-normal text-foreground/40' : 'font-bold text-foreground'}`}>{c.other_name}</p>
                     {c.last_message_at && (
-                      <span className={`text-[10px] shrink-0 ${isRead ? 'text-muted-foreground' : 'text-primary font-semibold'}`}>
+                      <span className={`text-[10px] shrink-0 ${isRead ? 'text-foreground/30' : 'text-foreground/60 font-semibold'}`}>
                         {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
                       </span>
                     )}
                   </div>
-                  <p className={`text-xs truncate ${isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
+                  <p className={`text-xs truncate ${isRead ? 'text-foreground/30' : 'text-foreground/60 font-medium'}`}>
                     {c.last_message || c.request_title}
                   </p>
                 </div>
