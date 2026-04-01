@@ -31,7 +31,6 @@ export default function WriterProfile() {
 
   useEffect(() => {
     if (!userId) return;
-
     const fetch = async () => {
       const [profileRes, samplesRes] = await Promise.all([
         supabase.from('profiles').select('full_name, avatar_url, bio, mode').eq('user_id', userId).single(),
@@ -41,29 +40,21 @@ export default function WriterProfile() {
       if (samplesRes.data) setSamples(samplesRes.data);
       setFetching(false);
     };
-
     fetch();
   }, [userId]);
 
   const handleMessage = async () => {
     if (!user || !userId || userId === user.id) return;
     setMessaging(true);
-
     try {
-      // Check if a conversation already exists between these two users
       const { data: existing } = await supabase
         .from('conversations')
         .select('id')
         .or(`and(buyer_id.eq.${user.id},seller_id.eq.${userId}),and(buyer_id.eq.${userId},seller_id.eq.${user.id})`)
         .maybeSingle();
 
-      if (existing) {
-        navigate(`/chat/${existing.id}`);
-        return;
-      }
+      if (existing) { navigate(`/chat/${existing.id}`); return; }
 
-      // Find any interest between this writer and current user's requests (approved or pending)
-      // First check: userId is the writer on current user's posts
       const { data: interest } = await supabase
         .from('post_interests')
         .select('id, request_id, status')
@@ -75,16 +66,11 @@ export default function WriterProfile() {
       let requestId: string | null = null;
 
       if (interest) {
-        // Auto-approve if still pending (poster is initiating chat = approval)
         if (interest.status === 'pending') {
-          await supabase
-            .from('post_interests')
-            .update({ status: 'approved' })
-            .eq('id', interest.id);
+          await supabase.from('post_interests').update({ status: 'approved' }).eq('id', interest.id);
         }
         requestId = interest.request_id;
       } else {
-        // Reverse: current user is the writer
         const { data: reverseInterest } = await supabase
           .from('post_interests')
           .select('id, request_id, status')
@@ -95,17 +81,13 @@ export default function WriterProfile() {
 
         if (reverseInterest) {
           if (reverseInterest.status === 'pending') {
-            await supabase
-              .from('post_interests')
-              .update({ status: 'approved' })
-              .eq('id', reverseInterest.id);
+            await supabase.from('post_interests').update({ status: 'approved' }).eq('id', reverseInterest.id);
           }
           requestId = reverseInterest.request_id;
         }
       }
 
       if (!requestId) {
-        // Fallback: pick any request by either user to link conversation
         const { data: anyRequest } = await supabase
           .from('requests')
           .select('id')
@@ -113,15 +95,10 @@ export default function WriterProfile() {
           .limit(1)
           .maybeSingle();
 
-        if (!anyRequest) {
-          toast.error('No linked request found');
-          setMessaging(false);
-          return;
-        }
+        if (!anyRequest) { toast.error('No linked request found'); setMessaging(false); return; }
         requestId = anyRequest.id;
       }
 
-      // Create conversation — current user is always seller_id (RLS requires auth.uid() = seller_id)
       const { data: convo, error } = await supabase
         .from('conversations')
         .insert({ seller_id: user.id, buyer_id: userId, request_id: requestId })
@@ -130,7 +107,7 @@ export default function WriterProfile() {
 
       if (error) throw error;
       navigate(`/chat/${convo.id}`);
-    } catch (err: any) {
+    } catch {
       toast.error('Could not start conversation');
     } finally {
       setMessaging(false);
@@ -142,7 +119,7 @@ export default function WriterProfile() {
 
   if (fetching) return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      <Loader2 className="w-6 h-6 animate-spin text-foreground/30" />
     </div>
   );
 
@@ -150,35 +127,35 @@ export default function WriterProfile() {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <div className="sticky top-0 z-10 glass-strong border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1 active:scale-[0.95] transition-transform">
+      <div className="sticky top-0 z-10 glass-strong px-4 py-3 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded-xl glass-button active:scale-[0.95]">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <span className="font-semibold text-foreground">{profile?.full_name || 'Profile'}</span>
+        <span className="font-bold text-foreground">{profile?.full_name || 'Profile'}</span>
       </div>
 
       <div className="px-4 py-6 space-y-6 max-w-lg mx-auto animate-fade-in">
         {/* Avatar + Info */}
         <div className="flex flex-col items-center text-center space-y-3">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover ring-2 ring-primary/30" />
+            <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover ring-2 ring-foreground/15" />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-secondary flex items-center justify-center text-3xl font-bold text-foreground">
+            <div className="w-24 h-24 rounded-full glass-strong flex items-center justify-center text-3xl font-bold text-foreground">
               {profile?.full_name?.[0]?.toUpperCase() || '?'}
             </div>
           )}
           <div>
             <h1 className="text-xl font-bold text-foreground">{profile?.full_name || 'Unknown'}</h1>
             {profile?.mode && (
-              <span className="inline-block mt-1 px-3 py-0.5 rounded-lg bg-primary/10 text-primary text-xs font-medium capitalize">{profile.mode}</span>
+              <span className="inline-block mt-1 px-3 py-0.5 rounded-xl glass text-foreground/60 text-xs font-bold capitalize">{profile.mode}</span>
             )}
           </div>
         </div>
 
         {/* Bio */}
         {profile?.bio && (
-          <div className="p-4 rounded-xl glass">
-            <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
+          <div className="p-5 rounded-2xl glass">
+            <p className="text-sm text-foreground/50 leading-relaxed">{profile.bio}</p>
           </div>
         )}
 
@@ -187,7 +164,7 @@ export default function WriterProfile() {
           <button
             onClick={handleMessage}
             disabled={messaging}
-            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-primary text-primary-foreground font-medium text-sm active:scale-[0.97] transition-transform disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl bg-foreground text-background font-bold text-sm active:scale-[0.97] transition-transform disabled:opacity-50"
           >
             {messaging ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
             Message
@@ -196,11 +173,11 @@ export default function WriterProfile() {
 
         {/* Writing Samples */}
         <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          <h2 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">
             Handwriting Samples ({samples.length})
           </h2>
           {samples.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">No samples uploaded yet</p>
+            <p className="text-sm text-foreground/40 text-center py-6">No samples uploaded yet</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {samples.map(s => (
@@ -208,7 +185,7 @@ export default function WriterProfile() {
                   key={s.id}
                   src={s.image_url}
                   alt="Writing sample"
-                  className="w-full aspect-[3/4] rounded-xl object-cover border border-border cursor-pointer"
+                  className="w-full aspect-[3/4] rounded-xl object-cover border border-foreground/10 cursor-pointer"
                   onClick={() => setPreviewUrl(s.image_url)}
                 />
               ))}
