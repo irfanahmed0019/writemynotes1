@@ -150,18 +150,18 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-black">
       {/* Header */}
-      <div className="shrink-0 glass-strong px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate('/chats')} className="p-1.5 rounded-xl glass-button active:scale-[0.95]">
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+      <div className="shrink-0 bg-black border-b border-[#1a1a1a] px-4 py-3 flex items-center gap-3">
+        <button onClick={() => navigate('/chats')} className="p-1.5 rounded-xl bg-[#111] active:scale-95">
+          <ArrowLeft className="w-5 h-5 text-white" />
         </button>
-        <div className="w-9 h-9 rounded-full glass flex items-center justify-center text-sm font-bold text-foreground">
+        <div className="w-9 h-9 rounded-full bg-[#1a1a1a] flex items-center justify-center text-sm font-bold text-white">
           {otherName[0]?.toUpperCase() || '?'}
         </div>
         <div>
-          <span className="font-bold text-foreground">{otherName}</span>
-          {otherTyping && <p className="text-[10px] text-foreground/50 font-medium">typing...</p>}
+          <span className="font-bold text-white">{otherName}</span>
+          {otherTyping && <p className="text-[10px] text-[#666] font-medium">typing...</p>}
         </div>
       </div>
 
@@ -175,17 +175,17 @@ export default function Chat() {
               <div
                 className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${
                   isMine
-                    ? 'bg-foreground text-background rounded-br-md'
-                    : 'glass text-foreground rounded-bl-md'
+                    ? 'bg-white text-black rounded-br-md'
+                    : 'bg-[#111] text-white rounded-bl-md'
                 }`}
               >
                 <p className="break-words" style={{ overflowWrap: 'break-word' }}>{m.content}</p>
                 <div className={`flex items-center gap-1.5 mt-1 ${isMine ? 'justify-end' : ''}`}>
-                  <p className={`text-[10px] ${isMine ? 'text-background/50' : 'text-foreground/30'}`}>
+                  <p className={`text-[10px] ${isMine ? 'text-black/40' : 'text-[#555]'}`}>
                     {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
                   </p>
                   {isMine && (
-                    <span className={`text-[10px] font-medium ${isRead ? 'text-background/70' : 'text-background/40'}`}>
+                    <span className={`text-[10px] font-medium ${isRead ? 'text-black/60' : 'text-black/30'}`}>
                       {isRead ? 'Seen' : 'Sent'}
                     </span>
                   )}
@@ -199,7 +199,7 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 glass-strong px-4 pt-3 pb-8">
+      <div className="shrink-0 bg-black border-t border-[#1a1a1a] px-4 pt-3 pb-8">
         <div className="flex items-center gap-2.5">
           <input
             value={newMessage}
@@ -209,12 +209,12 @@ export default function Chat() {
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 h-12 px-4 rounded-xl glass-input text-foreground placeholder:text-foreground/30 text-sm"
+            className="flex-1 h-12 px-4 rounded-xl bg-[#111] text-white placeholder:text-[#555] text-sm border-none outline-none"
           />
           <button
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
-            className="w-12 h-12 rounded-xl bg-foreground text-background flex items-center justify-center active:scale-[0.95] transition-transform disabled:opacity-40"
+            className="w-12 h-12 rounded-xl bg-white text-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40"
           >
             <Send className="w-5 h-5" />
           </button>

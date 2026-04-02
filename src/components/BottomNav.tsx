@@ -1,15 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Store, MessageCircle, User, Sparkles, Download, Shield, BookOpen } from 'lucide-react';
+import { Home, Activity, BookOpen, User, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
 const baseTabs = [
-  { path: '/marketplace', icon: Store, label: 'Market' },
+  { path: '/marketplace', icon: Home, label: 'Home' },
+  { path: '/activity', icon: Activity, label: 'Activity' },
   { path: '/study', icon: BookOpen, label: 'Study' },
-  { path: '/activity', icon: Sparkles, label: 'Activity' },
-  { path: '/chats', icon: MessageCircle, label: 'Chats' },
-  { path: '/install', icon: Download, label: 'Install' },
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -17,8 +15,6 @@ export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [unreadTotal, setUnreadTotal] = useState(0);
-  const [activityCount, setActivityCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -28,90 +24,27 @@ export default function BottomNav() {
   }, [user]);
 
   const tabs = isAdmin
-    ? [...baseTabs.slice(0, 5), { path: '/admin', icon: Shield, label: 'Admin' }, baseTabs[5]]
+    ? [...baseTabs, { path: '/admin', icon: Shield, label: 'Admin' }]
     : baseTabs;
 
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchUnread = async () => {
-      const { data: convos } = await supabase
-        .from('conversations')
-        .select('id')
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
-
-      if (!convos || convos.length === 0) { setUnreadTotal(0); return; }
-
-      const ids = convos.map(c => c.id);
-      const { count } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .in('conversation_id', ids)
-        .neq('sender_id', user.id)
-        .is('read_at', null);
-
-      setUnreadTotal(count || 0);
-    };
-
-    const fetchActivityCount = async () => {
-      const { data: myRequests } = await supabase
-        .from('requests')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (!myRequests || myRequests.length === 0) { setActivityCount(0); return; }
-
-      const { count } = await supabase
-        .from('post_interests')
-        .select('id', { count: 'exact', head: true })
-        .in('request_id', myRequests.map(r => r.id))
-        .eq('status', 'pending');
-
-      setActivityCount(count || 0);
-    };
-
-    fetchUnread();
-    fetchActivityCount();
-
-    const channel = supabase
-      .channel('unread-badge')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchUnread())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, () => fetchActivityCount())
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
-
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      <div className="mx-2 mb-2 rounded-2xl glass-strong">
-        <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
-          {tabs.map(tab => {
-            const active = location.pathname.startsWith(tab.path);
-            const showBadge = (tab.path === '/chats' && unreadTotal > 0) || (tab.path === '/activity' && activityCount > 0);
-            const badgeCount = tab.path === '/chats' ? unreadTotal : activityCount;
-            return (
-              <button
-                key={tab.path}
-                onClick={() => navigate(tab.path)}
-                className="relative flex flex-col items-center gap-0.5 py-1.5 px-3 transition-all active:scale-[0.88]"
-              >
-                <div className="relative">
-                  {active && (
-                    <div className="absolute -inset-2 rounded-xl bg-foreground/10" />
-                  )}
-                  <tab.icon className={`relative w-5 h-5 transition-all ${active ? 'text-foreground drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]' : 'text-muted-foreground'}`} />
-                  {showBadge && (
-                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-foreground text-background text-[9px] font-bold flex items-center justify-center">
-                      {badgeCount > 99 ? '99+' : badgeCount}
-                    </span>
-                  )}
-                </div>
-                <span className={`text-[10px] font-medium transition-all ${active ? 'text-foreground' : 'text-muted-foreground'}`}>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-[#1a1a1a]">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
+        {tabs.map(tab => {
+          const active = location.pathname.startsWith(tab.path);
+          return (
+            <button
+              key={tab.path}
+              onClick={() => navigate(tab.path)}
+              className="flex flex-col items-center gap-1 py-2 px-3 transition-all active:scale-[0.9]"
+            >
+              <tab.icon className={`w-5 h-5 ${active ? 'text-white' : 'text-[#666]'}`} strokeWidth={active ? 2.5 : 1.5} />
+              <span className={`text-[10px] ${active ? 'text-white font-bold' : 'text-[#666] font-medium'}`}>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
