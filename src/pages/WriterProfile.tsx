@@ -118,66 +118,62 @@ export default function WriterProfile() {
   if (!user) return <Navigate to="/login" replace />;
 
   if (fetching) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="w-6 h-6 animate-spin text-foreground/30" />
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <Loader2 className="w-6 h-6 animate-spin text-[#444]" />
     </div>
   );
 
   const isOwnProfile = userId === user.id;
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <div className="sticky top-0 z-10 glass-strong px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded-xl glass-button active:scale-[0.95]">
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+    <div className="min-h-screen bg-black pb-8">
+      <div className="sticky top-0 z-10 bg-black border-b border-[#1a1a1a] px-5 py-3 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded-xl bg-[#111] active:scale-95">
+          <ArrowLeft className="w-5 h-5 text-white" />
         </button>
-        <span className="font-bold text-foreground">{profile?.full_name || 'Profile'}</span>
+        <span className="font-bold text-white">{profile?.full_name || 'Profile'}</span>
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto animate-fade-in">
-        {/* Avatar + Info */}
+      <div className="px-5 py-6 space-y-6 max-w-lg mx-auto">
         <div className="flex flex-col items-center text-center space-y-3">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover ring-2 ring-foreground/15" />
+            <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover" />
           ) : (
-            <div className="w-24 h-24 rounded-full glass-strong flex items-center justify-center text-3xl font-bold text-foreground">
+            <div className="w-24 h-24 rounded-full bg-[#111] flex items-center justify-center text-3xl font-bold text-[#888]">
               {profile?.full_name?.[0]?.toUpperCase() || '?'}
             </div>
           )}
           <div>
-            <h1 className="text-xl font-bold text-foreground">{profile?.full_name || 'Unknown'}</h1>
+            <h1 className="text-xl font-bold text-white">{profile?.full_name || 'Unknown'}</h1>
             {profile?.mode && (
-              <span className="inline-block mt-1 px-3 py-0.5 rounded-xl glass text-foreground/60 text-xs font-bold capitalize">{profile.mode}</span>
+              <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-[#1a1a1a] text-[#888] text-xs font-bold capitalize">{profile.mode}</span>
             )}
           </div>
         </div>
 
-        {/* Bio */}
         {profile?.bio && (
-          <div className="p-5 rounded-2xl glass">
-            <p className="text-sm text-foreground/50 leading-relaxed">{profile.bio}</p>
+          <div className="p-5 rounded-2xl bg-[#111]">
+            <p className="text-sm text-[#888] leading-relaxed">{profile.bio}</p>
           </div>
         )}
 
-        {/* Message Button */}
         {!isOwnProfile && (
           <button
             onClick={handleMessage}
             disabled={messaging}
-            className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl bg-foreground text-background font-bold text-sm active:scale-[0.97] transition-transform disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl bg-white text-black font-bold text-sm active:scale-[0.97] transition-transform disabled:opacity-50"
           >
             {messaging ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
             Message
           </button>
         )}
 
-        {/* Writing Samples */}
         <div className="space-y-3">
-          <h2 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">
+          <h2 className="text-[11px] font-bold text-[#555] uppercase tracking-widest">
             Handwriting Samples ({samples.length})
           </h2>
           {samples.length === 0 ? (
-            <p className="text-sm text-foreground/40 text-center py-6">No samples uploaded yet</p>
+            <p className="text-sm text-[#555] text-center py-6">No samples uploaded yet</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {samples.map(s => (
@@ -185,7 +181,7 @@ export default function WriterProfile() {
                   key={s.id}
                   src={s.image_url}
                   alt="Writing sample"
-                  className="w-full aspect-[3/4] rounded-xl object-cover border border-foreground/10 cursor-pointer"
+                  className="w-full aspect-[3/4] rounded-xl object-cover cursor-pointer"
                   onClick={() => setPreviewUrl(s.image_url)}
                 />
               ))}

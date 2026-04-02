@@ -79,8 +79,8 @@ export default function PostDetail() {
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (!request) return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="w-6 h-6 animate-spin text-foreground/30" />
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <Loader2 className="w-6 h-6 animate-spin text-[#444]" />
     </div>
   );
 
@@ -124,81 +124,76 @@ export default function PostDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      {/* Header */}
-      <div className="sticky top-0 z-10 glass-strong px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded-xl glass-button active:scale-[0.95]">
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+    <div className="min-h-screen bg-black pb-8">
+      <div className="sticky top-0 z-10 bg-black border-b border-[#1a1a1a] px-5 py-3 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded-xl bg-[#111] active:scale-95">
+          <ArrowLeft className="w-5 h-5 text-white" />
         </button>
-        <h1 className="text-lg font-bold text-foreground truncate">Request Details</h1>
+        <h1 className="text-lg font-bold text-white truncate">Request Details</h1>
       </div>
 
-      <div className="px-4 py-6 space-y-6 max-w-lg mx-auto animate-fade-in">
-        {/* Request Info */}
+      <div className="px-5 py-6 space-y-6 max-w-lg mx-auto">
         <div className="space-y-4">
           <div>
-            <h2 className="text-xl font-bold text-foreground">{request.title}</h2>
+            <h2 className="text-xl font-bold text-white">{request.title}</h2>
             <div className="flex items-center gap-2 mt-2">
-              <span className="px-2.5 py-1 rounded-xl glass text-foreground/70 text-xs font-bold">{request.subject}</span>
-              <span className="text-xs text-foreground/30 flex items-center gap-1">
+              <span className="px-2.5 py-1 rounded-full bg-[#1a1a1a] text-[#888] text-xs font-bold">{request.subject}</span>
+              <span className="text-xs text-[#555] flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
               </span>
             </div>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-2xl glass text-center space-y-1">
-              <IndianRupee className="w-4 h-4 mx-auto text-foreground/50" />
-              <p className="text-lg font-bold text-foreground">₹{request.budget}</p>
-              <p className="text-[10px] text-foreground/30 uppercase tracking-widest font-bold">Budget</p>
+            <div className="p-3 rounded-2xl bg-[#111] text-center space-y-1">
+              <IndianRupee className="w-4 h-4 mx-auto text-[#666]" />
+              <p className="text-lg font-bold text-white">₹{request.budget}</p>
+              <p className="text-[10px] text-[#555] uppercase tracking-widest font-bold">Budget</p>
             </div>
-            <div className="p-3 rounded-2xl glass text-center space-y-1">
-              <FileText className="w-4 h-4 mx-auto text-foreground/50" />
-              <p className="text-lg font-bold text-foreground">{request.pages || '—'}</p>
-              <p className="text-[10px] text-foreground/30 uppercase tracking-widest font-bold">Pages</p>
+            <div className="p-3 rounded-2xl bg-[#111] text-center space-y-1">
+              <FileText className="w-4 h-4 mx-auto text-[#666]" />
+              <p className="text-lg font-bold text-white">{request.pages || '—'}</p>
+              <p className="text-[10px] text-[#555] uppercase tracking-widest font-bold">Pages</p>
             </div>
-            <div className="p-3 rounded-2xl glass text-center space-y-1">
-              <Calendar className="w-4 h-4 mx-auto text-foreground/50" />
-              <p className="text-sm font-bold text-foreground">{format(new Date(request.deadline), 'MMM d')}</p>
-              <p className="text-[10px] text-foreground/30 uppercase tracking-widest font-bold">Deadline</p>
+            <div className="p-3 rounded-2xl bg-[#111] text-center space-y-1">
+              <Calendar className="w-4 h-4 mx-auto text-[#666]" />
+              <p className="text-sm font-bold text-white">{format(new Date(request.deadline), 'MMM d')}</p>
+              <p className="text-[10px] text-[#555] uppercase tracking-widest font-bold">Deadline</p>
             </div>
           </div>
 
           {request.description && (
-            <div className="p-4 rounded-2xl glass">
-              <p className="text-sm text-foreground/50 leading-relaxed">{request.description}</p>
+            <div className="p-4 rounded-2xl bg-[#111]">
+              <p className="text-sm text-[#888] leading-relaxed">{request.description}</p>
             </div>
           )}
 
-          {/* Posted by */}
           <button
             onClick={() => navigate(`/writer/${request.user_id}`)}
-            className="flex items-center gap-3 p-4 rounded-2xl glass w-full active:scale-[0.98] transition-transform"
+            className="flex items-center gap-3 p-4 rounded-2xl bg-[#111] w-full active:scale-[0.98] transition-transform"
           >
             {request.profiles?.avatar_url ? (
-              <img src={request.profiles.avatar_url} className="w-10 h-10 rounded-full object-cover ring-1 ring-foreground/10" alt="" />
+              <img src={request.profiles.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
             ) : (
-              <div className="w-10 h-10 rounded-full glass-strong flex items-center justify-center text-sm font-bold text-foreground">
+              <div className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center text-sm font-bold text-[#888]">
                 {request.profiles?.full_name?.[0]?.toUpperCase() || '?'}
               </div>
             )}
             <div className="text-left">
-              <p className="text-sm font-bold text-foreground">{request.profiles?.full_name || 'Anonymous'}</p>
-              <p className="text-xs text-foreground/30">Posted by</p>
+              <p className="text-sm font-bold text-white">{request.profiles?.full_name || 'Anonymous'}</p>
+              <p className="text-xs text-[#555]">Posted by</p>
             </div>
           </button>
         </div>
 
-        {/* Action for writers */}
         {!isOwner && (
           <div>
             {myInterest ? (
-              <div className={`w-full h-14 rounded-2xl glass flex items-center justify-center text-sm font-bold ${
-                myInterest.status === 'approved' ? 'text-foreground/80' :
-                myInterest.status === 'rejected' ? 'text-destructive' :
-                'text-foreground/50'
+              <div className={`w-full h-14 rounded-2xl bg-[#111] flex items-center justify-center text-sm font-bold ${
+                myInterest.status === 'approved' ? 'text-white' :
+                myInterest.status === 'rejected' ? 'text-red-400' :
+                'text-[#888]'
               }`}>
                 {myInterest.status === 'approved' ? '✅ Approved — Check your chats!' :
                  myInterest.status === 'rejected' ? '❌ Interest was declined' :
@@ -208,7 +203,7 @@ export default function PostDetail() {
               <button
                 onClick={handleInterest}
                 disabled={submitting}
-                className="w-full h-14 rounded-2xl bg-foreground text-background font-bold text-base active:scale-[0.97] transition-transform disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full h-14 rounded-2xl bg-white text-black font-bold text-base active:scale-[0.97] transition-transform disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : '✍️ I am willing to write'}
               </button>
@@ -216,12 +211,11 @@ export default function PostDetail() {
           </div>
         )}
 
-        {/* Interest requests (visible to poster only) */}
         {isOwner && interests.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Writer Interests ({interests.length})</h3>
+            <h3 className="text-[11px] font-bold text-[#555] uppercase tracking-widest">Writer Interests ({interests.length})</h3>
             {interests.map(i => (
-              <div key={i.id} className="p-4 rounded-2xl glass flex items-center justify-between gap-3">
+              <div key={i.id} className="p-4 rounded-2xl bg-[#111] flex items-center justify-between gap-3">
                 <button
                   onClick={() => navigate(`/writer/${i.writer_id}`)}
                   className="flex items-center gap-2 min-w-0 active:scale-[0.98] transition-transform"
@@ -229,13 +223,13 @@ export default function PostDetail() {
                   {i.writer_avatar ? (
                     <img src={i.writer_avatar} className="w-9 h-9 rounded-full object-cover shrink-0" alt="" />
                   ) : (
-                    <div className="w-9 h-9 rounded-full glass-strong flex items-center justify-center text-xs font-bold text-foreground shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-[#1a1a1a] flex items-center justify-center text-xs font-bold text-[#888] shrink-0">
                       {i.writer_name?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
                   <div className="text-left min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">{i.writer_name}</p>
-                    <p className="text-[10px] text-foreground/30">
+                    <p className="text-sm font-semibold text-white truncate">{i.writer_name}</p>
+                    <p className="text-[10px] text-[#555]">
                       {formatDistanceToNow(new Date(i.created_at), { addSuffix: true })}
                     </p>
                   </div>
@@ -244,20 +238,20 @@ export default function PostDetail() {
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => handleApprove(i)}
-                      className="w-9 h-9 rounded-xl bg-foreground/10 text-foreground flex items-center justify-center active:scale-[0.95] transition-transform"
+                      className="w-9 h-9 rounded-xl bg-[#1a1a1a] text-white flex items-center justify-center active:scale-95 transition-transform"
                     >
                       <Check className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleReject(i)}
-                      className="w-9 h-9 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center active:scale-[0.95] transition-transform"
+                      className="w-9 h-9 rounded-xl bg-[#1a1a1a] text-red-400 flex items-center justify-center active:scale-95 transition-transform"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-xl ${
-                    i.status === 'approved' ? 'bg-foreground/10 text-foreground/70' : 'bg-destructive/10 text-destructive'
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                    i.status === 'approved' ? 'bg-[#1a1a1a] text-white' : 'bg-[#1a1a1a] text-red-400'
                   }`}>
                     {i.status}
                   </span>
