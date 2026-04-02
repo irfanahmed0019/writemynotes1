@@ -10,8 +10,8 @@ export default function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-foreground/40" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Loader2 className="h-8 w-8 animate-spin text-[#444]" />
       </div>
     );
   }
@@ -30,26 +30,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6">
-      <div className="w-full max-w-sm space-y-10 animate-fade-in">
-        {/* Brand */}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black px-6">
+      <div className="w-full max-w-sm space-y-10">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl glass-strong">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#111]">
             <span className="text-4xl">📝</span>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground" style={{ lineHeight: '1.05' }}>
+          <h1 className="text-4xl font-bold tracking-tight text-white" style={{ lineHeight: '1.05' }}>
             WriteMyNotes
           </h1>
-          <p className="text-foreground/40 text-sm">
+          <p className="text-[#666] text-sm">
             Get your records done. Or make money writing them.
           </p>
         </div>
 
-        {/* Login Button */}
         <button
           onClick={handleGoogleLogin}
           disabled={signingIn}
-          className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-foreground text-background font-semibold text-base transition-all active:scale-[0.97] disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-white text-black font-semibold text-base transition-all active:scale-[0.97] disabled:opacity-50"
         >
           {signingIn ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -66,7 +64,7 @@ export default function Login() {
           )}
         </button>
 
-        <p className="text-center text-xs text-foreground/30">
+        <p className="text-center text-xs text-[#444]">
           By signing in, you agree to keep it real 🤙
         </p>
       </div>

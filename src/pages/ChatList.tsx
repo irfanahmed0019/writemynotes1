@@ -89,16 +89,16 @@ export default function ChatList() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen bg-background pb-24 animate-fade-in">
-      <div className="sticky top-0 z-10 glass-strong px-4 py-4">
-        <h1 className="text-xl font-bold text-foreground">Messages</h1>
+    <div className="min-h-screen bg-black pb-20">
+      <div className="px-5 pt-6 pb-2">
+        <h1 className="text-[28px] font-bold text-white tracking-tight">Messages</h1>
       </div>
 
-      <div className="px-4 py-2 space-y-2">
+      <div className="px-5 py-2 space-y-2">
         {conversations.length === 0 ? (
-          <div className="text-center py-16 space-y-3">
-            <MessageCircle className="w-10 h-10 text-foreground/20 mx-auto" />
-            <p className="text-foreground/40 text-sm">No conversations yet</p>
+          <div className="text-center py-16">
+            <MessageCircle className="w-10 h-10 text-[#333] mx-auto mb-3" />
+            <p className="text-[#555] text-sm">No conversations yet</p>
           </div>
         ) : (
           conversations.map(c => {
@@ -107,32 +107,30 @@ export default function ChatList() {
               <button
                 key={c.id}
                 onClick={() => navigate(`/chat/${c.id}`)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl glass transition-all text-left active:scale-[0.98] ${isRead ? 'opacity-50' : ''}`}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#111] transition-all text-left active:scale-[0.98] ${isRead ? 'opacity-50' : ''}`}
               >
                 <div className="relative shrink-0">
                   <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold ${
-                    isRead
-                      ? 'glass-subtle text-foreground/40'
-                      : 'bg-foreground/10 ring-2 ring-foreground/30 text-foreground'
+                    isRead ? 'bg-[#1a1a1a] text-[#555]' : 'bg-[#1a1a1a] text-white'
                   }`}>
                     {c.other_name[0]?.toUpperCase() || '?'}
                   </div>
                   {c.unread_count > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground text-background text-[10px] font-bold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-black text-[10px] font-bold flex items-center justify-center">
                       {c.unread_count > 9 ? '9+' : c.unread_count}
                     </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className={`text-sm truncate ${isRead ? 'font-normal text-foreground/40' : 'font-bold text-foreground'}`}>{c.other_name}</p>
+                    <p className={`text-sm truncate ${isRead ? 'font-normal text-[#666]' : 'font-bold text-white'}`}>{c.other_name}</p>
                     {c.last_message_at && (
-                      <span className={`text-[10px] shrink-0 ${isRead ? 'text-foreground/30' : 'text-foreground/60 font-semibold'}`}>
+                      <span className="text-[10px] text-[#555] shrink-0">
                         {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
                       </span>
                     )}
                   </div>
-                  <p className={`text-xs truncate ${isRead ? 'text-foreground/30' : 'text-foreground/60 font-medium'}`}>
+                  <p className={`text-xs truncate ${isRead ? 'text-[#444]' : 'text-[#888]'}`}>
                     {c.last_message || c.request_title}
                   </p>
                 </div>
