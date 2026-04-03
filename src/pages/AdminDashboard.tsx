@@ -61,6 +61,7 @@ export default function AdminDashboard() {
   const [studySaving, setStudySaving] = useState(false);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesText, setNotesText] = useState('');
+  const [layoutItems, setLayoutItems] = useState<LayoutItem[]>([]);
 
   useEffect(() => {
     if (!user) return;
