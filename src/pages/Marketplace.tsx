@@ -2,9 +2,11 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { Search, Plus, Trash2, Clock, IndianRupee, FileText } from 'lucide-react';
+import { Search, Plus, Trash2, Clock, IndianRupee, FileText, Sparkles, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
+import { useUiLayout } from '@/hooks/use-ui-layout';
+import { usePwaInstall } from '@/hooks/use-pwa-install';
 
 type Request = {
   id: string;
@@ -22,12 +24,25 @@ type Request = {
 
 const SUBJECTS = ['All', 'Physics', 'Chemistry', 'Maths', 'Biology', 'English', 'CS', 'Other'];
 
+const HEADER_ICON_MAP: Record<string, any> = {
+  Plus, Sparkles, Download,
+};
+
+const HEADER_ACTION_MAP: Record<string, string> = {
+  post: '/post',
+  activity: '/activity',
+  install: '__install__',
+};
+
 export default function Marketplace() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [requests, setRequests] = useState<Request[]>([]);
   const [search, setSearch] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('All');
+  const { headerItems } = useUiLayout();
+  const { canInstall, isInstalled, install } = usePwaInstall();
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -63,18 +78,41 @@ export default function Marketplace() {
     setRequests(prev => prev.filter(r => r.id !== id));
   };
 
+  const handleHeaderAction = async (key: string) => {
+    if (key === 'install') {
+      if (isInstalled) return;
+      const result = await install();
+      if (result === 'manual') setShowInstallGuide(true);
+    } else {
+      const path = HEADER_ACTION_MAP[key];
+      if (path) navigate(path);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black pb-20">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-black px-5 pt-6 pb-4">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-[28px] font-bold text-white tracking-tight">Marketplace</h1>
-          <button
-            onClick={() => navigate('/post')}
-            className="w-10 h-10 rounded-full bg-white flex items-center justify-center active:scale-95 transition-transform"
-          >
-            <Plus className="w-5 h-5 text-black" />
-          </button>
+          <div className="flex items-center gap-2">
+            {headerItems.map(item => {
+              const Icon = HEADER_ICON_MAP[item.icon] || Plus;
+              const isInstallBtn = item.key === 'install';
+              if (isInstallBtn && isInstalled) return null;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => handleHeaderAction(item.key)}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform ${
+                    item.key === 'post' ? 'bg-white' : 'bg-[#1a1a1a]'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${item.key === 'post' ? 'text-black' : 'text-white'}`} />
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="relative mb-4">
@@ -104,6 +142,26 @@ export default function Marketplace() {
           ))}
         </div>
       </div>
+
+      {/* Install Guide Modal */}
+      {showInstallGuide && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60" onClick={() => setShowInstallGuide(false)}>
+          <div className="w-full max-w-lg bg-[#111] rounded-t-3xl p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-white">Install WriteMyNotes</h2>
+            <div className="space-y-3 text-sm text-[#aaa]">
+              <p><strong className="text-white">Chrome (Android):</strong> Tap the 3-dot menu → "Add to Home screen"</p>
+              <p><strong className="text-white">Safari (iOS):</strong> Tap the Share button → "Add to Home Screen"</p>
+              <p><strong className="text-white">Chrome (Desktop):</strong> Click the install icon in the address bar</p>
+            </div>
+            <button
+              onClick={() => setShowInstallGuide(false)}
+              className="w-full py-3 rounded-2xl bg-white text-black font-bold text-sm"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Requests List */}
       <div className="px-5 py-2 space-y-3">

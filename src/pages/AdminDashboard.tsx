@@ -2,9 +2,10 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save } from 'lucide-react';
+import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save, Palette, ArrowUp, ArrowDown, EyeOff } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
+import type { LayoutItem } from '@/hooks/use-ui-layout';
 
 type UserProfile = {
   user_id: string;
@@ -39,7 +40,7 @@ type ConversationItem = {
   message_count?: number;
 };
 
-type Tab = 'users' | 'posts' | 'chats' | 'study';
+type Tab = 'users' | 'posts' | 'chats' | 'study' | 'design';
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -60,6 +61,7 @@ export default function AdminDashboard() {
   const [studySaving, setStudySaving] = useState(false);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [notesText, setNotesText] = useState('');
+  const [layoutItems, setLayoutItems] = useState<LayoutItem[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -133,6 +135,11 @@ export default function AdminDashboard() {
         }
       };
       fetchStudy();
+    }
+
+    if (tab === 'design') {
+      supabase.from('ui_layout' as any).select('*').order('sort_order', { ascending: true })
+        .then(({ data }) => { if (data) setLayoutItems(data as any); });
     }
   }, [isAdmin, tab]);
 
@@ -212,11 +219,41 @@ export default function AdminDashboard() {
     setNotesText('');
   };
 
+  const toggleVisibility = async (item: LayoutItem) => {
+    const newVal = !item.visible;
+    await supabase.from('ui_layout' as any).update({ visible: newVal } as any).eq('id', item.id);
+    setLayoutItems(prev => prev.map(i => i.id === item.id ? { ...i, visible: newVal } : i));
+  };
+
+  const swapPosition = async (item: LayoutItem) => {
+    const newPos = item.position === 'bottom' ? 'header' : 'bottom';
+    await supabase.from('ui_layout' as any).update({ position: newPos } as any).eq('id', item.id);
+    setLayoutItems(prev => prev.map(i => i.id === item.id ? { ...i, position: newPos as any } : i));
+  };
+
+  const moveOrder = async (item: LayoutItem, direction: 'up' | 'down') => {
+    const group = layoutItems.filter(i => i.position === item.position).sort((a, b) => a.sort_order - b.sort_order);
+    const idx = group.findIndex(i => i.id === item.id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= group.length) return;
+    const other = group[swapIdx];
+    await Promise.all([
+      supabase.from('ui_layout' as any).update({ sort_order: other.sort_order } as any).eq('id', item.id),
+      supabase.from('ui_layout' as any).update({ sort_order: item.sort_order } as any).eq('id', other.id),
+    ]);
+    setLayoutItems(prev => prev.map(i => {
+      if (i.id === item.id) return { ...i, sort_order: other.sort_order };
+      if (i.id === other.id) return { ...i, sort_order: item.sort_order };
+      return i;
+    }));
+  };
+
   const tabs: { key: Tab; label: string; icon: any }[] = [
     { key: 'users', label: 'Users', icon: Users },
     { key: 'posts', label: 'Posts', icon: FileText },
     { key: 'chats', label: 'Chats', icon: MessageSquare },
     { key: 'study', label: 'Study', icon: BookOpen },
+    { key: 'design', label: 'Design', icon: Palette },
   ];
 
   return (
@@ -454,6 +491,46 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Design Tab */}
+        {tab === 'design' && (
+          <div className="space-y-4">
+            {['bottom', 'header'].map(pos => {
+              const group = layoutItems.filter(i => i.position === pos).sort((a, b) => a.sort_order - b.sort_order);
+              return (
+                <div key={pos} className="p-4 rounded-2xl bg-[#111] space-y-3">
+                  <h3 className="font-bold text-sm text-white capitalize">
+                    {pos === 'bottom' ? 'Bottom Navigation' : 'Top-Right Header'}
+                  </h3>
+                  {group.map((item, idx) => (
+                    <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-[#1a1a1a]">
+                      <span className={`text-sm font-bold flex-1 ${item.visible ? 'text-white' : 'text-[#555] line-through'}`}>
+                        {item.label}
+                      </span>
+                      <button onClick={() => moveOrder(item, 'up')} disabled={idx === 0}
+                        className="p-1.5 rounded-lg bg-[#222] text-[#888] disabled:opacity-30">
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => moveOrder(item, 'down')} disabled={idx === group.length - 1}
+                        className="p-1.5 rounded-lg bg-[#222] text-[#888] disabled:opacity-30">
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => swapPosition(item)}
+                        className="px-2 py-1 rounded-lg bg-[#222] text-[10px] font-bold text-[#888]">
+                        → {pos === 'bottom' ? 'Header' : 'Bottom'}
+                      </button>
+                      <button onClick={() => toggleVisibility(item)}
+                        className={`p-1.5 rounded-lg ${item.visible ? 'bg-white text-black' : 'bg-[#222] text-[#555]'}`}>
+                        {item.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  ))}
+                  {group.length === 0 && <p className="text-xs text-[#555]">No items here</p>}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

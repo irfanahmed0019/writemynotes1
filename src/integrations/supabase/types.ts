@@ -258,6 +258,39 @@ export type Database = {
           },
         ]
       }
+      ui_layout: {
+        Row: {
+          icon: string
+          id: string
+          key: string
+          label: string
+          position: string
+          sort_order: number
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          icon?: string
+          id?: string
+          key: string
+          label: string
+          position?: string
+          sort_order?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          icon?: string
+          id?: string
+          key?: string
+          label?: string
+          position?: string
+          sort_order?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
