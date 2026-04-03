@@ -40,7 +40,7 @@ type ConversationItem = {
   message_count?: number;
 };
 
-type Tab = 'users' | 'posts' | 'chats' | 'study';
+type Tab = 'users' | 'posts' | 'chats' | 'study' | 'design';
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
