@@ -219,11 +219,41 @@ export default function AdminDashboard() {
     setNotesText('');
   };
 
+  const toggleVisibility = async (item: LayoutItem) => {
+    const newVal = !item.visible;
+    await supabase.from('ui_layout' as any).update({ visible: newVal } as any).eq('id', item.id);
+    setLayoutItems(prev => prev.map(i => i.id === item.id ? { ...i, visible: newVal } : i));
+  };
+
+  const swapPosition = async (item: LayoutItem) => {
+    const newPos = item.position === 'bottom' ? 'header' : 'bottom';
+    await supabase.from('ui_layout' as any).update({ position: newPos } as any).eq('id', item.id);
+    setLayoutItems(prev => prev.map(i => i.id === item.id ? { ...i, position: newPos as any } : i));
+  };
+
+  const moveOrder = async (item: LayoutItem, direction: 'up' | 'down') => {
+    const group = layoutItems.filter(i => i.position === item.position).sort((a, b) => a.sort_order - b.sort_order);
+    const idx = group.findIndex(i => i.id === item.id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= group.length) return;
+    const other = group[swapIdx];
+    await Promise.all([
+      supabase.from('ui_layout' as any).update({ sort_order: other.sort_order } as any).eq('id', item.id),
+      supabase.from('ui_layout' as any).update({ sort_order: item.sort_order } as any).eq('id', other.id),
+    ]);
+    setLayoutItems(prev => prev.map(i => {
+      if (i.id === item.id) return { ...i, sort_order: other.sort_order };
+      if (i.id === other.id) return { ...i, sort_order: item.sort_order };
+      return i;
+    }));
+  };
+
   const tabs: { key: Tab; label: string; icon: any }[] = [
     { key: 'users', label: 'Users', icon: Users },
     { key: 'posts', label: 'Posts', icon: FileText },
     { key: 'chats', label: 'Chats', icon: MessageSquare },
     { key: 'study', label: 'Study', icon: BookOpen },
+    { key: 'design', label: 'Design', icon: Palette },
   ];
 
   return (
