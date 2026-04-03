@@ -2,9 +2,10 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save } from 'lucide-react';
+import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save, Palette, ArrowUp, ArrowDown, EyeOff } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
+import type { LayoutItem } from '@/hooks/use-ui-layout';
 
 type UserProfile = {
   user_id: string;
