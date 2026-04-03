@@ -136,6 +136,11 @@ export default function AdminDashboard() {
       };
       fetchStudy();
     }
+
+    if (tab === 'design') {
+      supabase.from('ui_layout' as any).select('*').order('sort_order', { ascending: true })
+        .then(({ data }) => { if (data) setLayoutItems(data as any); });
+    }
   }, [isAdmin, tab]);
 
   useEffect(() => {
