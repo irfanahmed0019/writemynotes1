@@ -493,6 +493,46 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Design Tab */}
+        {tab === 'design' && (
+          <div className="space-y-4">
+            {['bottom', 'header'].map(pos => {
+              const group = layoutItems.filter(i => i.position === pos).sort((a, b) => a.sort_order - b.sort_order);
+              return (
+                <div key={pos} className="p-4 rounded-2xl bg-[#111] space-y-3">
+                  <h3 className="font-bold text-sm text-white capitalize">
+                    {pos === 'bottom' ? 'Bottom Navigation' : 'Top-Right Header'}
+                  </h3>
+                  {group.map((item, idx) => (
+                    <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-[#1a1a1a]">
+                      <span className={`text-sm font-bold flex-1 ${item.visible ? 'text-white' : 'text-[#555] line-through'}`}>
+                        {item.label}
+                      </span>
+                      <button onClick={() => moveOrder(item, 'up')} disabled={idx === 0}
+                        className="p-1.5 rounded-lg bg-[#222] text-[#888] disabled:opacity-30">
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => moveOrder(item, 'down')} disabled={idx === group.length - 1}
+                        className="p-1.5 rounded-lg bg-[#222] text-[#888] disabled:opacity-30">
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => swapPosition(item)}
+                        className="px-2 py-1 rounded-lg bg-[#222] text-[10px] font-bold text-[#888]">
+                        → {pos === 'bottom' ? 'Header' : 'Bottom'}
+                      </button>
+                      <button onClick={() => toggleVisibility(item)}
+                        className={`p-1.5 rounded-lg ${item.visible ? 'bg-white text-black' : 'bg-[#222] text-[#555]'}`}>
+                        {item.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  ))}
+                  {group.length === 0 && <p className="text-xs text-[#555]">No items here</p>}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <BottomNav />
