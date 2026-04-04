@@ -150,18 +150,18 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-black">
+    <div className="h-[100dvh] flex flex-col bg-background">
       {/* Header */}
-      <div className="shrink-0 bg-black border-b border-[#1a1a1a] px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate('/chats')} className="p-1.5 rounded-xl bg-[#111] active:scale-95">
-          <ArrowLeft className="w-5 h-5 text-white" />
+      <div className="shrink-0 bg-background/80 backdrop-blur-xl border-b border-border px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 flex items-center gap-3">
+        <button onClick={() => navigate('/chats')} className="p-1.5 rounded-xl bg-secondary active:scale-95">
+          <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <div className="w-9 h-9 rounded-full bg-[#1a1a1a] flex items-center justify-center text-sm font-bold text-white">
+        <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
           {otherName[0]?.toUpperCase() || '?'}
         </div>
         <div>
-          <span className="font-bold text-white">{otherName}</span>
-          {otherTyping && <p className="text-[10px] text-[#666] font-medium">typing...</p>}
+          <span className="font-bold text-foreground">{otherName}</span>
+          {otherTyping && <p className="text-[10px] text-muted-foreground font-medium">typing...</p>}
         </div>
       </div>
 
@@ -175,17 +175,17 @@ export default function Chat() {
               <div
                 className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${
                   isMine
-                    ? 'bg-white text-black rounded-br-md'
-                    : 'bg-[#111] text-white rounded-bl-md'
+                    ? 'bg-primary text-primary-foreground rounded-br-md'
+                    : 'bg-card text-foreground rounded-bl-md'
                 }`}
               >
                 <p className="break-words" style={{ overflowWrap: 'break-word' }}>{m.content}</p>
                 <div className={`flex items-center gap-1.5 mt-1 ${isMine ? 'justify-end' : ''}`}>
-                  <p className={`text-[10px] ${isMine ? 'text-black/40' : 'text-[#555]'}`}>
+                  <p className={`text-[10px] ${isMine ? 'text-primary-foreground/40' : 'text-muted-foreground'}`}>
                     {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
                   </p>
                   {isMine && (
-                    <span className={`text-[10px] font-medium ${isRead ? 'text-black/60' : 'text-black/30'}`}>
+                    <span className={`text-[10px] font-medium ${isRead ? 'text-primary-foreground/60' : 'text-primary-foreground/30'}`}>
                       {isRead ? 'Seen' : 'Sent'}
                     </span>
                   )}
@@ -199,7 +199,7 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 bg-black border-t border-[#1a1a1a] px-4 pt-3 pb-8">
+      <div className="shrink-0 bg-background/80 backdrop-blur-xl border-t border-border px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-2.5">
           <input
             value={newMessage}
@@ -209,12 +209,12 @@ export default function Chat() {
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 h-12 px-4 rounded-xl bg-[#111] text-white placeholder:text-[#555] text-sm border-none outline-none"
+            className="flex-1 h-11 px-4 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-sm border-none outline-none"
           />
           <button
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
-            className="w-12 h-12 rounded-xl bg-white text-black flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40"
+            className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40"
           >
             <Send className="w-5 h-5" />
           </button>

@@ -2,7 +2,7 @@ import { useAuth } from '@/lib/auth';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useRef } from 'react';
-import { LogOut, Package, Pencil, Plus, Trash2, Loader2, Camera } from 'lucide-react';
+import { LogOut, Pencil, Trash2, Loader2, Camera } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import ImagePreview from '@/components/ImagePreview';
 import { toast } from 'sonner';
@@ -118,13 +118,13 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-black pb-20">
-      <div className="px-5 pt-6 pb-4 max-w-lg mx-auto space-y-6">
+    <div className="min-h-[100dvh] bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
+      <div className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 max-w-lg mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-[28px] font-bold text-white tracking-tight">Profile</h1>
+          <h1 className="text-[28px] font-bold text-foreground tracking-tight">Profile</h1>
           <button onClick={() => setEditingBio(!editingBio)} className="p-2">
-            <Pencil className="w-5 h-5 text-[#666]" />
+            <Pencil className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
@@ -133,19 +133,19 @@ export default function Profile() {
           {profile?.avatar_url ? (
             <img src={profile.avatar_url} alt="" className="w-20 h-20 rounded-full object-cover" />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-[#111] flex items-center justify-center text-2xl font-bold text-[#888]">
+            <div className="w-20 h-20 rounded-full bg-card flex items-center justify-center text-2xl font-bold text-secondary-foreground">
               {profile?.full_name?.[0]?.toUpperCase() || '?'}
             </div>
           )}
           <div>
-            <h2 className="text-xl font-bold text-white">{profile?.full_name || 'Student'}</h2>
-            <p className="text-sm text-[#666]">{user.email}</p>
+            <h2 className="text-xl font-bold text-foreground">{profile?.full_name || 'Student'}</h2>
+            <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
         </div>
 
         {/* Bio */}
         <div className="space-y-2">
-          <h3 className="text-[11px] font-bold text-[#555] uppercase tracking-widest">Bio</h3>
+          <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Bio</h3>
           {editingBio ? (
             <div className="space-y-2">
               <textarea
@@ -153,20 +153,20 @@ export default function Profile() {
                 onChange={(e) => setBioText(e.target.value)}
                 rows={3}
                 placeholder="Tell people about yourself..."
-                className="w-full px-4 py-3 rounded-xl bg-[#111] text-white placeholder:text-[#444] text-sm resize-none border-none outline-none focus:ring-1 focus:ring-[#333]"
+                className="w-full px-4 py-3 rounded-xl bg-card text-foreground placeholder:text-muted-foreground text-sm resize-none border-none outline-none focus:ring-1 focus:ring-border"
               />
-              <button onClick={saveBio} className="h-9 px-4 rounded-xl bg-white text-black text-sm font-semibold active:scale-95 transition-transform">
+              <button onClick={saveBio} className="h-9 px-4 rounded-xl bg-primary text-primary-foreground text-sm font-semibold active:scale-95 transition-transform">
                 Save
               </button>
             </div>
           ) : (
-            <p className="text-sm text-[#888]">{profile?.bio || 'No bio yet'}</p>
+            <p className="text-sm text-secondary-foreground">{profile?.bio || 'No bio yet'}</p>
           )}
         </div>
 
         {/* Writing Samples */}
         <div className="space-y-3">
-          <h3 className="text-[11px] font-bold text-[#555] uppercase tracking-widest">Handwriting Samples</h3>
+          <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Handwriting Samples</h3>
           <div className="grid grid-cols-2 gap-3">
             {samples.map(s => (
               <div key={s.id} className="relative group">
@@ -182,7 +182,7 @@ export default function Profile() {
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="aspect-[3/4] rounded-xl bg-[#111] flex flex-col items-center justify-center gap-2 text-[#555] disabled:opacity-50"
+              className="aspect-[3/4] rounded-xl bg-card flex flex-col items-center justify-center gap-2 text-muted-foreground disabled:opacity-50"
             >
               {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Camera className="w-6 h-6" />}
               <span className="text-xs font-medium">Add Sample</span>
@@ -193,19 +193,19 @@ export default function Profile() {
 
         {/* My Requests */}
         <div className="space-y-3">
-          <h3 className="text-[11px] font-bold text-[#555] uppercase tracking-widest">My Requests</h3>
+          <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">My Requests</h3>
           {myRequests.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-sm text-[#555]">No requests posted</p>
+              <p className="text-sm text-muted-foreground">No requests posted</p>
             </div>
           ) : (
             myRequests.map(r => (
-              <div key={r.id} className="p-3 rounded-xl bg-[#111] flex items-center justify-between">
+              <div key={r.id} className="p-3 rounded-xl bg-card flex items-center justify-between">
                 <div>
-                  <p className="font-semibold text-sm text-white">{r.title}</p>
-                  <p className="text-xs text-[#666]">{r.subject} • ₹{r.budget}</p>
+                  <p className="font-semibold text-sm text-foreground">{r.title}</p>
+                  <p className="text-xs text-muted-foreground">{r.subject} • ₹{r.budget}</p>
                 </div>
-                <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-[#1a1a1a] text-[#888]">
+                <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-secondary text-secondary-foreground">
                   {r.status}
                 </span>
               </div>
@@ -216,7 +216,7 @@ export default function Profile() {
         {/* Sign Out */}
         <button
           onClick={signOut}
-          className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl bg-[#111] text-red-400 font-semibold text-sm active:scale-[0.98] transition-transform"
+          className="w-full flex items-center justify-center gap-2 h-12 rounded-2xl bg-card text-red-400 font-semibold text-sm active:scale-[0.98] transition-transform"
         >
           <LogOut className="w-4 h-4" />
           Sign Out
