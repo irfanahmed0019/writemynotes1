@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, FileText, Home, ExternalLink, ArrowLeft, Plus } from 'lucide-react';
+import { BookOpen, FileText, Home, ExternalLink, ArrowLeft } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/lib/auth';
 import { Navigate } from 'react-router-dom';
@@ -36,7 +36,7 @@ export default function Study() {
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
 
-  // Reading mode - renders HTML content in sandboxed iframe
+  // Reading mode
   if (readingSubject) {
     const htmlContent = readingSubject.notes_content?.trim().startsWith('<')
       ? readingSubject.notes_content
@@ -85,14 +85,14 @@ export default function Study() {
 </html>`;
 
     return (
-      <div className="min-h-screen bg-black pb-20">
-        <div className="sticky top-0 z-10 bg-black border-b border-[#1a1a1a] px-5 py-3 flex items-center gap-3">
-          <button onClick={() => setReadingSubject(null)} className="p-1.5 rounded-xl bg-[#111] active:scale-95">
-            <ArrowLeft className="w-5 h-5 text-white" />
+      <div className="min-h-[100dvh] bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
+        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 flex items-center gap-3">
+          <button onClick={() => setReadingSubject(null)} className="p-1.5 rounded-xl bg-secondary active:scale-95">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div>
-            <h1 className="text-base font-bold text-white">{readingSubject.name}</h1>
-            <p className="text-[10px] text-[#555] font-bold uppercase tracking-widest">Notes</p>
+            <h1 className="text-base font-bold text-foreground">{readingSubject.name}</h1>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Notes</p>
           </div>
         </div>
         <div className="w-full">
@@ -111,7 +111,7 @@ export default function Study() {
             />
           ) : (
             <div className="p-8 text-center">
-              <p className="text-sm text-[#555]">Notes haven't been written yet.</p>
+              <p className="text-sm text-muted-foreground">Notes haven't been written yet.</p>
             </div>
           )}
         </div>
@@ -127,18 +127,13 @@ export default function Study() {
   ];
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="min-h-[100dvh] bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
       {/* Header */}
-      <div className="px-5 pt-6 pb-4">
+      <div className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4">
         <div className="flex items-center justify-between mb-1">
-          <h1 className="text-[28px] font-bold text-white tracking-tight">Study</h1>
-          {config && (
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-              <Plus className="w-5 h-5 text-black" />
-            </div>
-          )}
+          <h1 className="text-[28px] font-bold text-foreground tracking-tight">Study</h1>
         </div>
-        <p className="text-sm text-[#666]">Notes and study materials</p>
+        <p className="text-sm text-muted-foreground">Notes and study materials</p>
 
         <div className="flex gap-2 mt-4">
           {subTabs.map(t => (
@@ -147,8 +142,8 @@ export default function Study() {
               onClick={() => setSubTab(t.key)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 subTab === t.key
-                  ? 'bg-white text-black'
-                  : 'bg-[#1a1a1a] text-[#888]'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground'
               }`}
             >
               <t.icon className="w-3.5 h-3.5" />
@@ -164,16 +159,16 @@ export default function Study() {
           <>
             {subjects.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-sm text-[#555]">No subjects available yet</p>
+                <p className="text-sm text-muted-foreground">No subjects available yet</p>
               </div>
             ) : (
               subjects.map((s, i) => (
-                <div key={s.id} className="p-4 rounded-2xl bg-[#111] active:scale-[0.99] transition-all">
+                <div key={s.id} className="p-4 rounded-2xl bg-card active:scale-[0.99] transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-sm font-bold text-white">
+                    <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
                       {String(i + 1).padStart(2, '0')}
                     </div>
-                    <h3 className="font-bold text-[15px] text-white">{s.name}</h3>
+                    <h3 className="font-bold text-[15px] text-foreground">{s.name}</h3>
                   </div>
                   <div className="flex gap-2">
                     {(s.notes_content || s.notes_url) && (
@@ -182,7 +177,7 @@ export default function Study() {
                           if (s.notes_content) setReadingSubject(s);
                           else if (s.notes_url) window.open(s.notes_url, '_blank');
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-black text-xs font-bold active:scale-95 transition-transform"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold active:scale-95 transition-transform"
                       >
                         <BookOpen className="w-3 h-3" /> Notes
                       </button>
@@ -192,7 +187,7 @@ export default function Study() {
                         href={s.papers_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1a1a1a] text-[#888] text-xs font-bold"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary text-secondary-foreground text-xs font-bold"
                       >
                         <FileText className="w-3 h-3" /> Papers <ExternalLink className="w-3 h-3" />
                       </a>
@@ -209,7 +204,7 @@ export default function Study() {
           <>
             {subjects.filter(s => s.notes_content || s.notes_url).length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-sm text-[#555]">No notes available yet.</p>
+                <p className="text-sm text-muted-foreground">No notes available yet.</p>
               </div>
             ) : (
               subjects.filter(s => s.notes_content || s.notes_url).map(s => (
@@ -219,23 +214,23 @@ export default function Study() {
                     if (s.notes_content) setReadingSubject(s);
                     else if (s.notes_url) window.open(s.notes_url, '_blank');
                   }}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl bg-[#111] active:scale-[0.98] transition-all text-left"
+                  className="w-full flex items-center justify-between p-4 rounded-2xl bg-card active:scale-[0.98] transition-all text-left"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-foreground" />
                     </div>
                     <div>
-                      <span className="font-bold text-sm text-white">{s.name}</span>
-                      <p className="text-[10px] text-[#555] font-semibold">
+                      <span className="font-bold text-sm text-foreground">{s.name}</span>
+                      <p className="text-[10px] text-muted-foreground font-semibold">
                         {s.notes_content ? 'Tap to read' : 'External link'}
                       </p>
                     </div>
                   </div>
                   {s.notes_content ? (
-                    <BookOpen className="w-4 h-4 text-[#555]" />
+                    <BookOpen className="w-4 h-4 text-muted-foreground" />
                   ) : (
-                    <ExternalLink className="w-4 h-4 text-[#555]" />
+                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
                   )}
                 </button>
               ))
@@ -248,7 +243,7 @@ export default function Study() {
           <>
             {subjects.filter(s => s.papers_url).length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-sm text-[#555]">No papers available yet.</p>
+                <p className="text-sm text-muted-foreground">No papers available yet.</p>
               </div>
             ) : (
               subjects.filter(s => s.papers_url).map(s => (
@@ -257,15 +252,15 @@ export default function Study() {
                   href={s.papers_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-4 rounded-2xl bg-[#111] active:scale-[0.98] transition-all"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-card active:scale-[0.98] transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-foreground" />
                     </div>
-                    <span className="font-bold text-sm text-white">{s.name}</span>
+                    <span className="font-bold text-sm text-foreground">{s.name}</span>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-[#555]" />
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
                 </a>
               ))
             )}

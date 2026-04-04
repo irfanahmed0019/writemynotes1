@@ -13,13 +13,13 @@ export type LayoutItem = {
 
 const DEFAULT_ITEMS: LayoutItem[] = [
   { id: '1', key: 'home', label: 'Home', icon: 'Home', visible: true, position: 'bottom', sort_order: 0 },
-  { id: '2', key: 'chat', label: 'Chat', icon: 'MessageCircle', visible: true, position: 'bottom', sort_order: 1 },
-  { id: '3', key: 'study', label: 'Study', icon: 'BookOpen', visible: true, position: 'bottom', sort_order: 2 },
-  { id: '4', key: 'profile', label: 'Profile', icon: 'User', visible: true, position: 'bottom', sort_order: 3 },
-  { id: '5', key: 'admin', label: 'Admin', icon: 'Shield', visible: true, position: 'bottom', sort_order: 4 },
+  { id: '3', key: 'study', label: 'Study', icon: 'BookOpen', visible: true, position: 'bottom', sort_order: 1 },
+  { id: '4', key: 'profile', label: 'Profile', icon: 'User', visible: true, position: 'bottom', sort_order: 2 },
+  { id: '5', key: 'admin', label: 'Admin', icon: 'Shield', visible: true, position: 'bottom', sort_order: 3 },
   { id: '6', key: 'post', label: 'Post', icon: 'Plus', visible: true, position: 'header', sort_order: 0 },
-  { id: '7', key: 'activity', label: 'Activity', icon: 'Sparkles', visible: true, position: 'header', sort_order: 1 },
-  { id: '8', key: 'install', label: 'Install', icon: 'Download', visible: true, position: 'header', sort_order: 2 },
+  { id: '2', key: 'chat', label: 'Chat', icon: 'Send', visible: true, position: 'header', sort_order: 1 },
+  { id: '7', key: 'activity', label: 'Activity', icon: 'Sparkles', visible: true, position: 'header', sort_order: 2 },
+  { id: '8', key: 'install', label: 'Install', icon: 'Download', visible: true, position: 'header', sort_order: 3 },
 ];
 
 export function useUiLayout() {

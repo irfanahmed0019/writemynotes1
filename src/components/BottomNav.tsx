@@ -36,7 +36,7 @@ export default function BottomNav() {
   });
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-[#1a1a1a] pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
         {visibleTabs.map(item => {
           const path = PATH_MAP[item.key] || `/${item.key}`;
@@ -48,8 +48,8 @@ export default function BottomNav() {
               onClick={() => navigate(path)}
               className="flex flex-col items-center gap-0.5 py-1.5 px-3 transition-all active:scale-[0.9]"
             >
-              <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-[#666]'}`} strokeWidth={active ? 2.5 : 1.5} />
-              <span className={`text-[10px] ${active ? 'text-white font-bold' : 'text-[#666] font-medium'}`}>
+              <Icon className={`w-5 h-5 ${active ? 'text-foreground' : 'text-muted-foreground'}`} strokeWidth={active ? 2.5 : 1.5} />
+              <span className={`text-[10px] ${active ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
                 {item.label}
               </span>
             </button>

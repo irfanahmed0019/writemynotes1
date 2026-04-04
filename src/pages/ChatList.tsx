@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, ArrowLeft } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 type Conversation = {
@@ -89,16 +89,19 @@ export default function ChatList() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen bg-black pb-20">
-      <div className="px-5 pt-6 pb-2">
-        <h1 className="text-[28px] font-bold text-white tracking-tight">Messages</h1>
+    <div className="min-h-[100dvh] bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
+      <div className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-2 flex items-center gap-3">
+        <button onClick={() => navigate('/marketplace')} className="p-1.5 rounded-xl bg-secondary active:scale-95">
+          <ArrowLeft className="w-5 h-5 text-foreground" />
+        </button>
+        <h1 className="text-[28px] font-bold text-foreground tracking-tight">Messages</h1>
       </div>
 
       <div className="px-5 py-2 space-y-2">
         {conversations.length === 0 ? (
           <div className="text-center py-16">
-            <MessageCircle className="w-10 h-10 text-[#333] mx-auto mb-3" />
-            <p className="text-[#555] text-sm">No conversations yet</p>
+            <MessageCircle className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">No conversations yet</p>
           </div>
         ) : (
           conversations.map(c => {
@@ -107,30 +110,30 @@ export default function ChatList() {
               <button
                 key={c.id}
                 onClick={() => navigate(`/chat/${c.id}`)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#111] transition-all text-left active:scale-[0.98] ${isRead ? 'opacity-50' : ''}`}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-card transition-all text-left active:scale-[0.98] ${isRead ? 'opacity-50' : ''}`}
               >
                 <div className="relative shrink-0">
                   <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold ${
-                    isRead ? 'bg-[#1a1a1a] text-[#555]' : 'bg-[#1a1a1a] text-white'
+                    isRead ? 'bg-secondary text-muted-foreground' : 'bg-secondary text-foreground'
                   }`}>
                     {c.other_name[0]?.toUpperCase() || '?'}
                   </div>
                   {c.unread_count > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-black text-[10px] font-bold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
                       {c.unread_count > 9 ? '9+' : c.unread_count}
                     </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className={`text-sm truncate ${isRead ? 'font-normal text-[#666]' : 'font-bold text-white'}`}>{c.other_name}</p>
+                    <p className={`text-sm truncate ${isRead ? 'font-normal text-muted-foreground' : 'font-bold text-foreground'}`}>{c.other_name}</p>
                     {c.last_message_at && (
-                      <span className="text-[10px] text-[#555] shrink-0">
+                      <span className="text-[10px] text-muted-foreground shrink-0">
                         {formatDistanceToNow(new Date(c.last_message_at), { addSuffix: true })}
                       </span>
                     )}
                   </div>
-                  <p className={`text-xs truncate ${isRead ? 'text-[#444]' : 'text-[#888]'}`}>
+                  <p className={`text-xs truncate ${isRead ? 'text-muted-foreground/60' : 'text-secondary-foreground'}`}>
                     {c.last_message || c.request_title}
                   </p>
                 </div>
@@ -139,8 +142,6 @@ export default function ChatList() {
           })
         )}
       </div>
-
-      <BottomNav />
     </div>
   );
 }

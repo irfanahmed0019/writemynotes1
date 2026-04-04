@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import BottomNav from '@/components/BottomNav';
 
 type ActivityItem = {
@@ -92,19 +92,24 @@ export default function Activity() {
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen bg-black pb-20">
-      <div className="px-5 pt-6 pb-2">
-        <h1 className="text-[28px] font-bold text-white tracking-tight">Activity</h1>
-        <p className="text-sm text-[#666] mt-1">Writers interested in your requests</p>
+    <div className="min-h-[100dvh] bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
+      <div className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-2">
+        <div className="flex items-center gap-3 mb-1">
+          <button onClick={() => navigate('/marketplace')} className="p-1.5 rounded-xl bg-secondary active:scale-95">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-[28px] font-bold text-foreground tracking-tight">Activity</h1>
+        </div>
+        <p className="text-sm text-muted-foreground ml-11">Writers interested in your requests</p>
       </div>
 
       {fetching ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-6 h-6 animate-spin text-[#444]" />
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-          <p className="text-sm text-[#555]">No activity yet</p>
+          <p className="text-sm text-muted-foreground">No activity yet</p>
         </div>
       ) : (
         <div className="px-5 py-2 space-y-2">
@@ -112,33 +117,33 @@ export default function Activity() {
             <button
               key={item.id}
               onClick={() => navigate(`/writer/${item.writer_id}`)}
-              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-[#111] text-left active:scale-[0.98] transition-all"
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-card text-left active:scale-[0.98] transition-all"
             >
               {item.writer_avatar ? (
                 <img src={item.writer_avatar} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
               ) : (
-                <div className="w-11 h-11 rounded-full bg-[#1a1a1a] flex items-center justify-center text-sm font-bold text-[#888] shrink-0">
+                <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-secondary-foreground shrink-0">
                   {item.writer_name[0]?.toUpperCase() || '?'}
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white leading-snug">
+                <p className="text-sm text-foreground leading-snug">
                   <span className="font-bold">{item.writer_name}</span>
                   {' '}is willing to write on{' '}
-                  <span className="font-semibold text-[#aaa]">"{item.request_title}"</span>
+                  <span className="font-semibold text-secondary-foreground">"{item.request_title}"</span>
                 </p>
-                <p className="text-xs text-[#555] mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                 </p>
               </div>
 
               <span className={`shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full ${
                 item.status === 'pending'
-                  ? 'bg-[#1a1a1a] text-[#888]'
+                  ? 'bg-secondary text-secondary-foreground'
                   : item.status === 'approved'
-                  ? 'bg-[#1a1a1a] text-white'
-                  : 'bg-[#1a1a1a] text-red-400'
+                  ? 'bg-secondary text-foreground'
+                  : 'bg-secondary text-red-400'
               }`}>
                 {item.status === 'pending' ? 'New' : item.status === 'approved' ? 'Approved' : 'Declined'}
               </span>
