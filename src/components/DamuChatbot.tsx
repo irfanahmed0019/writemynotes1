@@ -93,7 +93,8 @@ export default function DamuChatbot() {
     }
   }, [input, loading, messages]);
 
-  if (!user) return null;
+  const chatbotItem = items.find(i => i.key === 'chatbot');
+  if (!user || (chatbotItem && !chatbotItem.visible)) return null;
 
   return (
     <>
