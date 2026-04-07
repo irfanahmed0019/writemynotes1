@@ -20,6 +20,7 @@ const DEFAULT_ITEMS: LayoutItem[] = [
   { id: '2', key: 'chat', label: 'Chat', icon: 'Send', visible: true, position: 'header', sort_order: 1 },
   { id: '7', key: 'activity', label: 'Activity', icon: 'Sparkles', visible: true, position: 'header', sort_order: 2 },
   { id: '8', key: 'install', label: 'Install', icon: 'Download', visible: true, position: 'header', sort_order: 3 },
+  { id: '9', key: 'chatbot', label: 'Damu Bot', icon: 'Bot', visible: true, position: 'header', sort_order: 4 },
 ];
 
 export function useUiLayout() {
