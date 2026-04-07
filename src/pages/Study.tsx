@@ -163,37 +163,25 @@ export default function Study() {
               </div>
             ) : (
               subjects.map((s, i) => (
-                <div key={s.id} className="p-4 rounded-2xl bg-card active:scale-[0.99] transition-all">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-sm font-bold text-foreground">
-                      {String(i + 1).padStart(2, '0')}
-                    </div>
-                    <h3 className="font-bold text-[15px] text-foreground">{s.name}</h3>
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    if (s.notes_content) setReadingSubject(s);
+                    else if (s.notes_url) window.open(s.notes_url, '_blank');
+                  }}
+                  className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card active:scale-[0.97] transition-all text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-sm font-bold text-foreground shrink-0">
+                    {String(i + 1).padStart(2, '0')}
                   </div>
-                  <div className="flex gap-2">
-                    {(s.notes_content || s.notes_url) && (
-                      <button
-                        onClick={() => {
-                          if (s.notes_content) setReadingSubject(s);
-                          else if (s.notes_url) window.open(s.notes_url, '_blank');
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold active:scale-95 transition-transform"
-                      >
-                        <BookOpen className="w-3 h-3" /> Notes
-                      </button>
-                    )}
-                    {s.papers_url && (
-                      <a
-                        href={s.papers_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary text-secondary-foreground text-xs font-bold"
-                      >
-                        <FileText className="w-3 h-3" /> Papers <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-[15px] text-foreground truncate">{s.name}</h3>
+                    <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+                      {s.notes_content ? 'Tap to read notes' : s.notes_url ? 'External link' : 'No notes yet'}
+                    </p>
                   </div>
-                </div>
+                  <BookOpen className="w-4 h-4 text-muted-foreground ml-auto shrink-0" />
+                </button>
               ))
             )}
           </>
