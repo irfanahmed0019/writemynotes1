@@ -9,6 +9,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/damu-chat`;
 
 export default function DamuChatbot() {
   const { user } = useAuth();
+  const { items } = useUiLayout();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: 'assistant', content: 'Hey! 👋 Njan Damu. Enthaa help veno? Ask me anything about the app!' },
