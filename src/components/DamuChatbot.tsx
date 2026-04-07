@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import { X, Send, Bot } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useUiLayout } from '@/hooks/use-ui-layout';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
