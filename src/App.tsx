@@ -42,6 +42,7 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <MessagePopup />
+          <DamuChatbot />
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<Login />} />
