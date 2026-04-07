@@ -18,6 +18,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Study from "./pages/Study";
 import NotFound from "./pages/NotFound";
 import MessagePopup from "./components/MessagePopup";
+import DamuChatbot from "./components/DamuChatbot";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
