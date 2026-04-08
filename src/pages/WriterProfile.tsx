@@ -47,58 +47,79 @@ export default function WriterProfile() {
     if (!user || !userId || userId === user.id) return;
     setMessaging(true);
     try {
-      const { data: existing } = await supabase
+      // Check existing conversations in both directions
+      const { data: existingList } = await supabase
         .from('conversations')
         .select('id')
-        .or(`and(buyer_id.eq.${user.id},seller_id.eq.${userId}),and(buyer_id.eq.${userId},seller_id.eq.${user.id})`)
-        .maybeSingle();
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`);
 
-      if (existing) { navigate(`/chat/${existing.id}`); return; }
-
-      const { data: interest } = await supabase
-        .from('post_interests')
-        .select('id, request_id, status')
-        .eq('writer_id', userId)
-        .order('created_at', { ascending: false })
+      const existing = existingList?.find(c => true); // filtered by both .or() clauses
+      
+      // More reliable: query both directions separately
+      const { data: conv1 } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('buyer_id', user.id)
+        .eq('seller_id', userId)
         .limit(1)
         .maybeSingle();
 
+      if (conv1) { navigate(`/chat/${conv1.id}`); return; }
+
+      const { data: conv2 } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('buyer_id', userId)
+        .eq('seller_id', user.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (conv2) { navigate(`/chat/${conv2.id}`); return; }
+
+      // Find a request_id — check interests by both users, then any request
       let requestId: string | null = null;
 
-      if (interest) {
-        if (interest.status === 'pending') {
-          await supabase.from('post_interests').update({ status: 'approved' }).eq('id', interest.id);
-        }
-        requestId = interest.request_id;
+      const { data: interest1 } = await supabase
+        .from('post_interests')
+        .select('request_id')
+        .eq('writer_id', userId)
+        .limit(1)
+        .maybeSingle();
+
+      if (interest1) {
+        requestId = interest1.request_id;
       } else {
-        const { data: reverseInterest } = await supabase
+        const { data: interest2 } = await supabase
           .from('post_interests')
-          .select('id, request_id, status')
+          .select('request_id')
           .eq('writer_id', user.id)
-          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        if (reverseInterest) {
-          if (reverseInterest.status === 'pending') {
-            await supabase.from('post_interests').update({ status: 'approved' }).eq('id', reverseInterest.id);
-          }
-          requestId = reverseInterest.request_id;
+        if (interest2) {
+          requestId = interest2.request_id;
         }
       }
 
       if (!requestId) {
-        const { data: anyRequest } = await supabase
-          .from('requests')
-          .select('id')
-          .or(`user_id.eq.${user.id},user_id.eq.${userId}`)
-          .limit(1)
-          .maybeSingle();
-
-        if (!anyRequest) { toast.error('No linked request found'); setMessaging(false); return; }
-        requestId = anyRequest.id;
+        // Fallback: find any request by either user
+        const { data: req1 } = await supabase.from('requests').select('id').eq('user_id', userId).limit(1).maybeSingle();
+        if (req1) {
+          requestId = req1.id;
+        } else {
+          const { data: req2 } = await supabase.from('requests').select('id').eq('user_id', user.id).limit(1).maybeSingle();
+          if (req2) requestId = req2.id;
+        }
       }
 
+      if (!requestId) {
+        toast.error('No linked request found');
+        setMessaging(false);
+        return;
+      }
+
+      // RLS requires auth.uid() = seller_id, so current user must be seller
       const { data: convo, error } = await supabase
         .from('conversations')
         .insert({ seller_id: user.id, buyer_id: userId, request_id: requestId })
@@ -107,7 +128,8 @@ export default function WriterProfile() {
 
       if (error) throw error;
       navigate(`/chat/${convo.id}`);
-    } catch {
+    } catch (err) {
+      console.error('handleMessage error:', err);
       toast.error('Could not start conversation');
     } finally {
       setMessaging(false);
