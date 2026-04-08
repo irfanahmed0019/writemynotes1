@@ -98,24 +98,47 @@ export default function PostDetail() {
   };
 
   const handleApprove = async (interest: Interest) => {
-    await supabase.from('post_interests').update({ status: 'approved' }).eq('id', interest.id);
+    const { error: approvalError } = await supabase
+      .from('post_interests')
+      .update({ status: 'approved' })
+      .eq('id', interest.id);
 
-    const { data: existing } = await supabase
-      .from('conversations')
-      .select('id')
-      .eq('request_id', request.id)
-      .eq('seller_id', interest.writer_id)
-      .maybeSingle();
-
-    if (!existing) {
-      await supabase.from('conversations').insert({
-        request_id: request.id,
-        buyer_id: request.user_id,
-        seller_id: interest.writer_id,
-      });
+    if (approvalError) {
+      toast.error('Could not approve this writer');
+      return;
     }
 
-    toast.success(`Approved! Chat created with ${interest.writer_name}`);
+    const [{ data: existingForward }, { data: existingReverse }] = await Promise.all([
+      supabase
+        .from('conversations')
+        .select('id')
+        .eq('request_id', request.id)
+        .eq('seller_id', user.id)
+        .eq('buyer_id', interest.writer_id)
+        .maybeSingle(),
+      supabase
+        .from('conversations')
+        .select('id')
+        .eq('request_id', request.id)
+        .eq('seller_id', interest.writer_id)
+        .eq('buyer_id', user.id)
+        .maybeSingle(),
+    ]);
+
+    if (!existingForward && !existingReverse) {
+      const { error: conversationError } = await supabase.from('conversations').insert({
+        request_id: request.id,
+        buyer_id: interest.writer_id,
+        seller_id: user.id,
+      });
+
+      if (conversationError) {
+        toast.error('Writer approved, but chat could not be created');
+        return;
+      }
+    }
+
+    toast.success(`Approved! Chat is ready with ${interest.writer_name}`);
   };
 
   const handleReject = async (interest: Interest) => {

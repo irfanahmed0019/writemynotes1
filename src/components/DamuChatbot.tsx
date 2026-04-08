@@ -1,11 +1,60 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Bot, ArrowUp } from 'lucide-react';
+import { X, Bot, ArrowUp } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useUiLayout } from '@/hooks/use-ui-layout';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
+type QuickAction = { label: string; kind: 'navigate' | 'send'; value: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/damu-chat`;
+
+const DEFAULT_QUICK_ACTIONS: QuickAction[] = [
+  { label: 'Open Notes', kind: 'navigate', value: '/study' },
+  { label: 'Create Post', kind: 'navigate', value: '/post' },
+  { label: 'Open Chats', kind: 'navigate', value: '/chats' },
+];
+
+function getQuickActions(messages: Msg[]): QuickAction[] {
+  const lastUserMessage = [...messages].reverse().find(message => message.role === 'user')?.content.toLowerCase() ?? '';
+
+  if (!lastUserMessage) return DEFAULT_QUICK_ACTIONS;
+
+  if (/(note|notes|study|subject|paper|fee|evs)/.test(lastUserMessage)) {
+    return [
+      { label: 'Open Notes', kind: 'navigate', value: '/study' },
+      { label: 'Notes tab', kind: 'send', value: 'Where is the notes option in the Study section?' },
+      { label: 'Open Study', kind: 'navigate', value: '/study' },
+    ];
+  }
+
+  if (/(post|request|upload|write|writer|sell)/.test(lastUserMessage)) {
+    return [
+      { label: 'Create Post', kind: 'navigate', value: '/post' },
+      { label: 'How to post?', kind: 'send', value: 'How do I post a new request?' },
+      { label: 'Open Home', kind: 'navigate', value: '/marketplace' },
+    ];
+  }
+
+  if (/(chat|message|dm|talk)/.test(lastUserMessage)) {
+    return [
+      { label: 'Open Chats', kind: 'navigate', value: '/chats' },
+      { label: 'Open Home', kind: 'navigate', value: '/marketplace' },
+      { label: 'Ask again', kind: 'send', value: 'How do I start chatting with someone here?' },
+    ];
+  }
+
+  if (/(profile|bio|sample|account)/.test(lastUserMessage)) {
+    return [
+      { label: 'Open Profile', kind: 'navigate', value: '/profile' },
+      { label: 'Writing samples', kind: 'send', value: 'How do I add writing samples to my profile?' },
+      { label: 'Open Home', kind: 'navigate', value: '/marketplace' },
+    ];
+  }
+
+  return DEFAULT_QUICK_ACTIONS;
+}
 
 function ThinkingDots() {
   return (
@@ -20,6 +69,7 @@ function ThinkingDots() {
 export default function DamuChatbot() {
   const { user } = useAuth();
   const { items } = useUiLayout();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: 'assistant', content: 'Hey! 👋 Njan Damu. Enthaa help veno? Ask me anything about the app!' },
@@ -28,6 +78,7 @@ export default function DamuChatbot() {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const quickActions = !loading ? getQuickActions(messages) : [];
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -66,8 +117,8 @@ export default function DamuChatbot() {
     };
   }, [open]);
 
-  const sendMessage = useCallback(async () => {
-    const text = input.trim();
+  const sendMessage = useCallback(async (presetText?: string) => {
+    const text = (presetText ?? input).trim();
     if (!text || loading) return;
     setInput('');
 
@@ -91,7 +142,25 @@ export default function DamuChatbot() {
         body: JSON.stringify({ messages: allMessages }),
       });
 
-      if (!resp.ok || !resp.body) throw new Error('Stream failed');
+      if (!resp.ok) {
+        let errorMessage = 'Stream failed';
+
+        try {
+          const errorPayload = await resp.json();
+          errorMessage = errorPayload.error || errorMessage;
+        } catch {
+          errorMessage = resp.status === 429
+            ? 'Too many messages right now. Try again soon.'
+            : resp.status === 402
+            ? 'AI credits are exhausted right now.'
+            : errorMessage;
+        }
+
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      if (!resp.body) throw new Error('Stream failed');
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -134,11 +203,24 @@ export default function DamuChatbot() {
       }
     } catch (e) {
       console.error('Damu chat error:', e);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Ayyo, something went wrong 😅 Try again!' }]);
+      const fallbackMessage = e instanceof Error && e.message
+        ? e.message
+        : 'Ayyo, something went wrong 😅 Try again!';
+      setMessages(prev => [...prev, { role: 'assistant', content: fallbackMessage }]);
     } finally {
       setLoading(false);
     }
   }, [input, loading, messages]);
+
+  const handleQuickAction = useCallback(async (action: QuickAction) => {
+    if (action.kind === 'navigate') {
+      setOpen(false);
+      navigate(action.value);
+      return;
+    }
+
+    await sendMessage(action.value);
+  }, [navigate, sendMessage]);
 
   const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -203,6 +285,20 @@ export default function DamuChatbot() {
                     }`}
                   >
                     {m.content}
+
+                    {i === messages.length - 1 && m.role === 'assistant' && quickActions.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {quickActions.map(action => (
+                          <button
+                            key={`${action.kind}-${action.label}`}
+                            onClick={() => handleQuickAction(action)}
+                            className="rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground active:scale-95 transition-transform"
+                          >
+                            {action.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
