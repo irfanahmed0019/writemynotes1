@@ -68,6 +68,10 @@ export default function Marketplace() {
     r.subject.toLowerCase().includes(search.toLowerCase())
   );
 
+  const visibleHeaderItems = headerItems.filter(item =>
+    Object.prototype.hasOwnProperty.call(HEADER_ACTION_MAP, item.key)
+  );
+
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     await supabase.from('requests').delete().eq('id', id);
@@ -92,7 +96,7 @@ export default function Marketplace() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-[28px] font-bold text-foreground tracking-tight">Marketplace</h1>
           <div className="flex items-center gap-2">
-            {headerItems.map(item => {
+            {visibleHeaderItems.map(item => {
               const Icon = HEADER_ICON_MAP[item.icon] || Plus;
               const isInstallBtn = item.key === 'install';
               if (isInstallBtn && isInstalled) return null;
