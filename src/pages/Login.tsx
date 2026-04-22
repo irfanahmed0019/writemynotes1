@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 export default function Login() {
   const { user, loading } = useAuth();
   const [signingIn, setSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -20,20 +21,18 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     setSigningIn(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-      if (error) {
-        console.error('OAuth error:', error.message);
-        setSigningIn(false);
-      }
-    } catch {
+    setError(null);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) {
+      setError(error.message);
       setSigningIn(false);
     }
+    // On success Supabase redirects the browser — no further action needed
   };
 
   return (
@@ -50,6 +49,10 @@ export default function Login() {
             Get your records done. Or make money writing them.
           </p>
         </div>
+
+        {error && (
+          <p className="text-center text-sm text-red-400">{error}</p>
+        )}
 
         <button
           onClick={handleGoogleLogin}
