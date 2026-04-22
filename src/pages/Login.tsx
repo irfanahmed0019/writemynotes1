@@ -1,6 +1,6 @@
 import { useAuth } from '@/lib/auth';
 import { Navigate } from 'react-router-dom';
-import { lovable } from '@/integrations/lovable';
+import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
@@ -21,9 +21,16 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     setSigningIn(true);
     try {
-      await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
+      if (error) {
+        console.error('OAuth error:', error.message);
+        setSigningIn(false);
+      }
     } catch {
       setSigningIn(false);
     }
