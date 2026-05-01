@@ -257,13 +257,7 @@ export default function AdminDashboard() {
       const interval = setInterval(fetchAnalytics, 30_000);
       return () => clearInterval(interval);
     }
-  }, [isAdmin, tab]);
-
-  // Re-fetch analytics when range changes
-  useEffect(() => {
-    if (tab === 'analytics') setTab('analytics');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activityRange]);
+  }, [isAdmin, tab, activityRange]);
 
   useEffect(() => {
     if (!selectedChat) return;
