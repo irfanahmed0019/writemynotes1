@@ -4,6 +4,9 @@ import { useAuth } from '@/lib/auth';
 import { useUiLayout } from '@/hooks/use-ui-layout';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAppSettings } from '@/hooks/use-app-settings';
+import { supabase } from '@/integrations/supabase/client';
+import ReactMarkdown from 'react-markdown';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 type QuickAction = { label: string; kind: 'navigate' | 'send'; value: string };
@@ -69,6 +72,7 @@ function ThinkingDots() {
 export default function DamuChatbot() {
   const { user } = useAuth();
   const { items } = useUiLayout();
+  const { settings } = useAppSettings();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
@@ -76,6 +80,8 @@ export default function DamuChatbot() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState<{ resetAt: number; limit: number } | null>(null);
+  const [now, setNow] = useState(Date.now());
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const quickActions = !loading ? getQuickActions(messages) : [];
@@ -86,6 +92,18 @@ export default function DamuChatbot() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, open, loading]);
+
+  // Tick countdown
+  useEffect(() => {
+    if (!cooldown) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  // Auto-clear when expired
+  useEffect(() => {
+    if (cooldown && now >= cooldown.resetAt) setCooldown(null);
+  }, [cooldown, now]);
 
   // Handle keyboard visibility via visualViewport
   useEffect(() => {
@@ -118,8 +136,9 @@ export default function DamuChatbot() {
   }, [open]);
 
   const sendMessage = useCallback(async (presetText?: string) => {
-    const text = (presetText ?? input).trim();
+    const text = (typeof presetText === 'string' ? presetText : input).trim();
     if (!text || loading) return;
+    if (cooldown && Date.now() < cooldown.resetAt) return;
     setInput('');
 
     // Reset textarea height
@@ -133,21 +152,30 @@ export default function DamuChatbot() {
     const allMessages = [...messages, userMsg];
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ messages: allMessages }),
       });
 
       if (!resp.ok) {
         let errorMessage = 'Stream failed';
+        let cooldownPayload: { resetAt: number; limit: number } | null = null;
 
         try {
           const errorPayload = await resp.json();
           errorMessage = errorPayload.error || errorMessage;
+          if (errorPayload.code === 'RATE_LIMIT' && errorPayload.reset_at) {
+            cooldownPayload = {
+              resetAt: new Date(errorPayload.reset_at).getTime(),
+              limit: errorPayload.limit ?? 0,
+            };
+          }
         } catch {
           errorMessage = resp.status === 429
             ? 'Too many messages right now. Try again soon.'
@@ -156,7 +184,12 @@ export default function DamuChatbot() {
             : errorMessage;
         }
 
-        toast.error(errorMessage);
+        if (cooldownPayload) {
+          setCooldown(cooldownPayload);
+          // Replace last user message echo with the limit notice (do not show toast spam)
+        } else {
+          toast.error(errorMessage);
+        }
         throw new Error(errorMessage);
       }
 
@@ -203,14 +236,17 @@ export default function DamuChatbot() {
       }
     } catch (e) {
       console.error('Damu chat error:', e);
-      const fallbackMessage = e instanceof Error && e.message
-        ? e.message
-        : 'Ayyo, something went wrong 😅 Try again!';
-      setMessages(prev => [...prev, { role: 'assistant', content: fallbackMessage }]);
+      // Don't append a bot bubble for cooldown — the dedicated UI handles it
+      if (!cooldown) {
+        const fallbackMessage = e instanceof Error && e.message
+          ? e.message
+          : 'Ayyo, something went wrong 😅 Try again!';
+        setMessages(prev => [...prev, { role: 'assistant', content: fallbackMessage }]);
+      }
     } finally {
       setLoading(false);
     }
-  }, [input, loading, messages]);
+  }, [input, loading, messages, cooldown]);
 
   const handleQuickAction = useCallback(async (action: QuickAction) => {
     if (action.kind === 'navigate') {
@@ -230,7 +266,14 @@ export default function DamuChatbot() {
   };
 
   const chatbotItem = items.find(i => i.key === 'chatbot');
-  if (!user || (chatbotItem && !chatbotItem.visible)) return null;
+  const chatbotEnabled = settings.feature_toggles?.chatbot !== false;
+  if (!user || !chatbotEnabled || (chatbotItem && !chatbotItem.visible)) return null;
+
+  const remainingMs = cooldown ? Math.max(0, cooldown.resetAt - now) : 0;
+  const hh = Math.floor(remainingMs / 3_600_000);
+  const mm = Math.floor((remainingMs % 3_600_000) / 60_000);
+  const ss = Math.floor((remainingMs % 60_000) / 1000);
+  const cooldownActive = !!cooldown && remainingMs > 0;
 
   return (
     <>
@@ -284,7 +327,13 @@ export default function DamuChatbot() {
                         : 'text-foreground/90'
                     }`}
                   >
-                    {m.content}
+                    {m.role === 'assistant' ? (
+                      <div className="prose prose-sm prose-invert max-w-none [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1">
+                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      m.content
+                    )}
 
                     {i === messages.length - 1 && m.role === 'assistant' && quickActions.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -312,6 +361,23 @@ export default function DamuChatbot() {
                   <ThinkingDots />
                 </div>
               )}
+
+              {cooldownActive && (
+                <div className="flex gap-3 justify-start">
+                  <div className="shrink-0 w-7 h-7 rounded-full bg-primary flex items-center justify-center mt-0.5">
+                    <Bot className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                  <div className="max-w-[85%] rounded-2xl border border-border bg-card p-4 space-y-2">
+                    <p className="text-sm font-bold text-foreground">You've reached today's chat limit</p>
+                    <p className="text-xs text-muted-foreground">
+                      Daily limit: {cooldown!.limit} messages. Come back when the timer resets.
+                    </p>
+                    <div className="font-mono text-2xl text-foreground tabular-nums tracking-tight">
+                      {String(hh).padStart(2, '0')}:{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -329,14 +395,15 @@ export default function DamuChatbot() {
                       sendMessage();
                     }
                   }}
-                  placeholder="Message Damu..."
+                  placeholder={cooldownActive ? 'Limit reached — see timer above' : 'Message Damu...'}
                   rows={1}
+                  disabled={cooldownActive}
                   className="flex-1 bg-transparent text-foreground text-sm placeholder:text-muted-foreground border-none outline-none resize-none py-1.5"
                   style={{ height: '44px', maxHeight: '120px' }}
                 />
                 <button
-                  onClick={sendMessage}
-                  disabled={loading || !input.trim()}
+                  onClick={() => sendMessage()}
+                  disabled={loading || !input.trim() || cooldownActive}
                   className="shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-30 active:scale-90 transition-all mb-0.5"
                 >
                   <ArrowUp className="w-4 h-4" />
