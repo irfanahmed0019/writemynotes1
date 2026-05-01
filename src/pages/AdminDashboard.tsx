@@ -2,11 +2,13 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save, Palette, ArrowUp, ArrowDown, EyeOff, Ban, CheckCircle } from 'lucide-react';
+import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save, Palette, ArrowUp, ArrowDown, EyeOff, Ban, CheckCircle, BarChart3, Layout as LayoutIcon, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
 import type { LayoutItem } from '@/hooks/use-ui-layout';
 import { toast } from 'sonner';
+import { useAppSettings, updateAppSetting, type FaqItem } from '@/hooks/use-app-settings';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
 
 type UserProfile = {
   user_id: string;
@@ -42,7 +44,7 @@ type ConversationItem = {
   message_count?: number;
 };
 
-type Tab = 'users' | 'posts' | 'chats' | 'study' | 'design';
+type Tab = 'users' | 'posts' | 'chats' | 'study' | 'design' | 'analytics' | 'homepage';
 
 // Undo/redo history for design changes
 type LayoutSnapshot = LayoutItem[];
@@ -52,6 +54,26 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [tab, setTab] = useState<Tab>('users');
+  const { settings, reload: reloadSettings } = useAppSettings();
+
+  // Analytics state
+  const [liveCount, setLiveCount] = useState<number>(0);
+  const [activityRange, setActivityRange] = useState<'3h' | '6h' | '1d' | '7d'>('1d');
+  const [activityData, setActivityData] = useState<{ time: string; users: number }[]>([]);
+
+  // Homepage editor draft
+  const [heroDraft, setHeroDraft] = useState(settings.hero);
+  const [announcementDraft, setAnnouncementDraft] = useState(settings.announcement);
+  const [faqDraft, setFaqDraft] = useState<FaqItem[]>(settings.faq?.items ?? []);
+  const [limitDraft, setLimitDraft] = useState<number>(settings.damu_daily_limit?.limit ?? 30);
+  const [savingHomepage, setSavingHomepage] = useState(false);
+
+  useEffect(() => {
+    setHeroDraft(settings.hero);
+    setAnnouncementDraft(settings.announcement);
+    setFaqDraft(settings.faq?.items ?? []);
+    setLimitDraft(settings.damu_daily_limit?.limit ?? 30);
+  }, [settings]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [posts, setPosts] = useState<RequestItem[]>([]);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -194,7 +216,54 @@ export default function AdminDashboard() {
           }
         });
     }
+
+    if (tab === 'analytics') {
+      const fetchAnalytics = async () => {
+        // Live = active in last 5 minutes
+        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const { count } = await supabase
+          .from('user_presence' as any)
+          .select('user_id', { count: 'exact', head: true })
+          .gte('last_seen', fiveMinAgo);
+        setLiveCount(count ?? 0);
+
+        const ranges = { '3h': 3, '6h': 6, '1d': 24, '7d': 24 * 7 };
+        const hours = ranges[activityRange];
+        const since = new Date(Date.now() - hours * 3_600_000).toISOString();
+        const { data: presence } = await supabase
+          .from('user_presence' as any)
+          .select('user_id, last_seen')
+          .gte('last_seen', since);
+
+        // Bucket by hour (or by day for 7d)
+        const useDayBucket = activityRange === '7d';
+        const buckets: Record<string, Set<string>> = {};
+        const now = Date.now();
+        const bucketCount = useDayBucket ? 7 : hours;
+        for (let i = bucketCount - 1; i >= 0; i--) {
+          const t = new Date(now - i * (useDayBucket ? 86_400_000 : 3_600_000));
+          const key = useDayBucket ? t.toISOString().slice(0, 10) : t.toISOString().slice(0, 13);
+          buckets[key] = new Set();
+        }
+        (presence as any[] | null)?.forEach(p => {
+          const t = new Date(p.last_seen);
+          const key = useDayBucket ? t.toISOString().slice(0, 10) : t.toISOString().slice(0, 13);
+          if (buckets[key]) buckets[key].add(p.user_id);
+        });
+        const labelFor = (k: string) => useDayBucket ? k.slice(5) : k.slice(11) + ':00';
+        setActivityData(Object.entries(buckets).map(([k, set]) => ({ time: labelFor(k), users: set.size })));
+      };
+      fetchAnalytics();
+      const interval = setInterval(fetchAnalytics, 30_000);
+      return () => clearInterval(interval);
+    }
   }, [isAdmin, tab]);
+
+  // Re-fetch analytics when range changes
+  useEffect(() => {
+    if (tab === 'analytics') setTab('analytics');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activityRange]);
 
   useEffect(() => {
     if (!selectedChat) return;
@@ -317,7 +386,29 @@ export default function AdminDashboard() {
     { key: 'chats', label: 'Chats', icon: MessageSquare },
     { key: 'study', label: 'Study', icon: BookOpen },
     { key: 'design', label: 'Design', icon: Palette },
+    { key: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { key: 'homepage', label: 'Homepage', icon: LayoutIcon },
   ];
+
+  const saveHomepage = async () => {
+    setSavingHomepage(true);
+    const errs = await Promise.all([
+      updateAppSetting('hero', heroDraft),
+      updateAppSetting('announcement', announcementDraft),
+      updateAppSetting('faq', { ...settings.faq, items: faqDraft }),
+      updateAppSetting('damu_daily_limit', { limit: Math.max(1, limitDraft) }),
+    ]);
+    setSavingHomepage(false);
+    if (errs.some(Boolean)) toast.error('Some changes failed to save');
+    else toast.success('Homepage saved');
+    reloadSettings();
+  };
+
+  const toggleFeature = async (key: keyof typeof settings.feature_toggles) => {
+    const next = { ...settings.feature_toggles, [key]: !settings.feature_toggles[key] };
+    await updateAppSetting('feature_toggles', next);
+    reloadSettings();
+  };
 
   return (
     <div className="min-h-[100dvh] bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
