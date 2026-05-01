@@ -3,11 +3,14 @@ import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useAppSettings } from '@/hooks/use-app-settings';
+import FaqSection from '@/components/FaqSection';
 
 export default function Login() {
   const { user, loading } = useAuth();
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { settings } = useAppSettings();
 
   if (loading) {
     return (
@@ -36,17 +39,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black px-6">
+    <div className="min-h-screen bg-black px-6 flex flex-col items-center justify-center py-10">
       <div className="w-full max-w-sm space-y-10">
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[#111]">
             <span className="text-4xl">📝</span>
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-white" style={{ lineHeight: '1.05' }}>
-            WriteMyNotes
+            {settings.hero?.enabled ? settings.hero.title : 'WriteMyNotes'}
           </h1>
           <p className="text-[#666] text-sm">
-            Get your records done. Or make money writing them.
+            {settings.hero?.enabled ? settings.hero.subtitle : 'Get your records done. Or make money writing them.'}
           </p>
         </div>
 
@@ -78,6 +81,12 @@ export default function Login() {
           By signing in, you agree to keep it real 🤙
         </p>
       </div>
+
+      {settings.feature_toggles?.landing_faq && settings.faq?.enabled && settings.faq.items?.length > 0 && (
+        <div className="w-full mt-12">
+          <FaqSection items={settings.faq.items} />
+        </div>
+      )}
     </div>
   );
 }
