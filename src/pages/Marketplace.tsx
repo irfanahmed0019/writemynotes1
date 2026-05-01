@@ -7,6 +7,9 @@ import { formatDistanceToNow } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
 import { useUiLayout } from '@/hooks/use-ui-layout';
 import { usePwaInstall } from '@/hooks/use-pwa-install';
+import { useAppSettings } from '@/hooks/use-app-settings';
+import FaqSection from '@/components/FaqSection';
+import { Megaphone, NotebookPen } from 'lucide-react';
 
 type Request = {
   id: string;
@@ -23,7 +26,7 @@ type Request = {
 };
 
 const HEADER_ICON_MAP: Record<string, any> = {
-  Plus, Sparkles, Download, Send,
+  Plus, Sparkles, Download, Send, NotebookPen,
 };
 
 const HEADER_ACTION_MAP: Record<string, string> = {
@@ -31,6 +34,7 @@ const HEADER_ACTION_MAP: Record<string, string> = {
   activity: '/activity',
   install: '__install__',
   chat: '/chats',
+  mynotes: '/my-notes',
 };
 
 export default function Marketplace() {
@@ -41,6 +45,7 @@ export default function Marketplace() {
   const { headerItems } = useUiLayout();
   const { canInstall, isInstalled, install } = usePwaInstall();
   const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const { settings } = useAppSettings();
 
   useEffect(() => {
     if (!user) return;
@@ -149,6 +154,12 @@ export default function Marketplace() {
 
       {/* Requests List */}
       <div className="px-5 py-2 space-y-3">
+        {settings.feature_toggles?.announcement && settings.announcement?.enabled && settings.announcement.text && (
+          <div className="flex items-start gap-2 px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20">
+            <Megaphone className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <p className="text-xs text-foreground leading-relaxed">{settings.announcement.text}</p>
+          </div>
+        )}
         {filtered.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-sm">No requests yet. Be the first to post!</p>
@@ -208,6 +219,9 @@ export default function Marketplace() {
       </div>
 
       <BottomNav />
+      {settings.feature_toggles?.faq && settings.faq?.enabled && (
+        <FaqSection items={settings.faq.items} />
+      )}
     </div>
   );
 }

@@ -16,10 +16,12 @@ import Activity from "./pages/Activity";
 import Install from "./pages/Install";
 import AdminDashboard from "./pages/AdminDashboard";
 import Study from "./pages/Study";
+import MyNotes from "./pages/MyNotes";
 import NotFound from "./pages/NotFound";
 import MessagePopup from "./components/MessagePopup";
 import DamuChatbot from "./components/DamuChatbot";
 import { Loader2 } from "lucide-react";
+import { usePresenceHeartbeat } from "./hooks/use-presence";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,11 @@ function RootRedirect() {
   return <Navigate to={user ? "/marketplace" : "/login"} replace />;
 }
 
+function PresenceTracker() {
+  usePresenceHeartbeat();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -43,6 +50,7 @@ const App = () => (
         <BrowserRouter>
           <MessagePopup />
           <DamuChatbot />
+          <PresenceTracker />
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<Login />} />
@@ -57,6 +65,7 @@ const App = () => (
             <Route path="/writer/:userId" element={<WriterProfile />} />
             <Route path="/install" element={<Install />} />
             <Route path="/study" element={<Study />} />
+            <Route path="/my-notes" element={<MyNotes />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

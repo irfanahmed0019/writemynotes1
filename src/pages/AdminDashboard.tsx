@@ -2,11 +2,13 @@ import { useAuth } from '@/lib/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save, Palette, ArrowUp, ArrowDown, EyeOff, Ban, CheckCircle } from 'lucide-react';
+import { Users, MessageSquare, FileText, Trash2, Eye, ChevronLeft, BookOpen, Plus, Save, Palette, ArrowUp, ArrowDown, EyeOff, Ban, CheckCircle, BarChart3, Layout as LayoutIcon, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
 import type { LayoutItem } from '@/hooks/use-ui-layout';
 import { toast } from 'sonner';
+import { useAppSettings, updateAppSetting, type FaqItem } from '@/hooks/use-app-settings';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
 
 type UserProfile = {
   user_id: string;
@@ -42,7 +44,7 @@ type ConversationItem = {
   message_count?: number;
 };
 
-type Tab = 'users' | 'posts' | 'chats' | 'study' | 'design';
+type Tab = 'users' | 'posts' | 'chats' | 'study' | 'design' | 'analytics' | 'homepage';
 
 // Undo/redo history for design changes
 type LayoutSnapshot = LayoutItem[];
@@ -52,6 +54,26 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [tab, setTab] = useState<Tab>('users');
+  const { settings, reload: reloadSettings } = useAppSettings();
+
+  // Analytics state
+  const [liveCount, setLiveCount] = useState<number>(0);
+  const [activityRange, setActivityRange] = useState<'3h' | '6h' | '1d' | '7d'>('1d');
+  const [activityData, setActivityData] = useState<{ time: string; users: number }[]>([]);
+
+  // Homepage editor draft
+  const [heroDraft, setHeroDraft] = useState(settings.hero);
+  const [announcementDraft, setAnnouncementDraft] = useState(settings.announcement);
+  const [faqDraft, setFaqDraft] = useState<FaqItem[]>(settings.faq?.items ?? []);
+  const [limitDraft, setLimitDraft] = useState<number>(settings.damu_daily_limit?.limit ?? 30);
+  const [savingHomepage, setSavingHomepage] = useState(false);
+
+  useEffect(() => {
+    setHeroDraft(settings.hero);
+    setAnnouncementDraft(settings.announcement);
+    setFaqDraft(settings.faq?.items ?? []);
+    setLimitDraft(settings.damu_daily_limit?.limit ?? 30);
+  }, [settings]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [posts, setPosts] = useState<RequestItem[]>([]);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
@@ -194,7 +216,48 @@ export default function AdminDashboard() {
           }
         });
     }
-  }, [isAdmin, tab]);
+
+    if (tab === 'analytics') {
+      const fetchAnalytics = async () => {
+        // Live = active in last 5 minutes
+        const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        const { count } = await supabase
+          .from('user_presence' as any)
+          .select('user_id', { count: 'exact', head: true })
+          .gte('last_seen', fiveMinAgo);
+        setLiveCount(count ?? 0);
+
+        const ranges = { '3h': 3, '6h': 6, '1d': 24, '7d': 24 * 7 };
+        const hours = ranges[activityRange];
+        const since = new Date(Date.now() - hours * 3_600_000).toISOString();
+        const { data: presence } = await supabase
+          .from('user_presence' as any)
+          .select('user_id, last_seen')
+          .gte('last_seen', since);
+
+        // Bucket by hour (or by day for 7d)
+        const useDayBucket = activityRange === '7d';
+        const buckets: Record<string, Set<string>> = {};
+        const now = Date.now();
+        const bucketCount = useDayBucket ? 7 : hours;
+        for (let i = bucketCount - 1; i >= 0; i--) {
+          const t = new Date(now - i * (useDayBucket ? 86_400_000 : 3_600_000));
+          const key = useDayBucket ? t.toISOString().slice(0, 10) : t.toISOString().slice(0, 13);
+          buckets[key] = new Set();
+        }
+        (presence as any[] | null)?.forEach(p => {
+          const t = new Date(p.last_seen);
+          const key = useDayBucket ? t.toISOString().slice(0, 10) : t.toISOString().slice(0, 13);
+          if (buckets[key]) buckets[key].add(p.user_id);
+        });
+        const labelFor = (k: string) => useDayBucket ? k.slice(5) : k.slice(11) + ':00';
+        setActivityData(Object.entries(buckets).map(([k, set]) => ({ time: labelFor(k), users: set.size })));
+      };
+      fetchAnalytics();
+      const interval = setInterval(fetchAnalytics, 30_000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin, tab, activityRange]);
 
   useEffect(() => {
     if (!selectedChat) return;
@@ -317,7 +380,29 @@ export default function AdminDashboard() {
     { key: 'chats', label: 'Chats', icon: MessageSquare },
     { key: 'study', label: 'Study', icon: BookOpen },
     { key: 'design', label: 'Design', icon: Palette },
+    { key: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { key: 'homepage', label: 'Homepage', icon: LayoutIcon },
   ];
+
+  const saveHomepage = async () => {
+    setSavingHomepage(true);
+    const errs = await Promise.all([
+      updateAppSetting('hero', heroDraft),
+      updateAppSetting('announcement', announcementDraft),
+      updateAppSetting('faq', { ...settings.faq, items: faqDraft }),
+      updateAppSetting('damu_daily_limit', { limit: Math.max(1, limitDraft) }),
+    ]);
+    setSavingHomepage(false);
+    if (errs.some(Boolean)) toast.error('Some changes failed to save');
+    else toast.success('Homepage saved');
+    reloadSettings();
+  };
+
+  const toggleFeature = async (key: keyof typeof settings.feature_toggles) => {
+    const next = { ...settings.feature_toggles, [key]: !settings.feature_toggles[key] };
+    await updateAppSetting('feature_toggles', next);
+    reloadSettings();
+  };
 
   return (
     <div className="min-h-[100dvh] bg-background pb-[calc(4rem+env(safe-area-inset-bottom))]">
@@ -623,6 +708,186 @@ export default function AdminDashboard() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Analytics Tab */}
+        {tab === 'analytics' && (
+          <div className="space-y-4">
+            <div className="p-5 rounded-2xl bg-card">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Live now</p>
+              <p className="text-4xl font-bold text-foreground mt-1 flex items-center gap-2">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                {liveCount}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Active in the last 5 minutes</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm text-foreground">User activity</h3>
+                <div className="flex gap-1">
+                  {(['3h', '6h', '1d', '7d'] as const).map(r => (
+                    <button
+                      key={r}
+                      onClick={() => setActivityRange(r)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase ${activityRange === r ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={activityData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Line type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Homepage Tab */}
+        {tab === 'homepage' && (
+          <div className="space-y-4">
+            {/* Feature toggles */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Feature visibility</h3>
+              {([
+                ['chatbot', 'Damu Chatbot (floating)'],
+                ['faq', 'FAQ on home page'],
+                ['landing_faq', 'FAQ on login/landing page'],
+                ['notes_upload', 'My Notes upload page'],
+                ['announcement', 'Announcement banner'],
+              ] as const).map(([k, lbl]) => (
+                <label key={k} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary cursor-pointer">
+                  <span className="text-sm text-foreground font-bold">{lbl}</span>
+                  <input
+                    type="checkbox"
+                    checked={!!settings.feature_toggles?.[k]}
+                    onChange={() => toggleFeature(k)}
+                    className="w-5 h-5 accent-primary"
+                  />
+                </label>
+              ))}
+            </div>
+
+            {/* Hero */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Hero (login screen)</h3>
+              <input
+                value={heroDraft?.title ?? ''}
+                onChange={e => setHeroDraft(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Hero title"
+                className="w-full px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+              />
+              <textarea
+                value={heroDraft?.subtitle ?? ''}
+                onChange={e => setHeroDraft(prev => ({ ...prev, subtitle: e.target.value }))}
+                placeholder="Hero subtitle"
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none resize-y"
+              />
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={!!heroDraft?.enabled}
+                  onChange={e => setHeroDraft(prev => ({ ...prev, enabled: e.target.checked }))}
+                />
+                Show on login screen
+              </label>
+            </div>
+
+            {/* Announcement */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Announcement banner</h3>
+              <textarea
+                value={announcementDraft?.text ?? ''}
+                onChange={e => setAnnouncementDraft(prev => ({ ...prev, text: e.target.value }))}
+                placeholder="Short announcement text"
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none resize-y"
+              />
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={!!announcementDraft?.enabled}
+                  onChange={e => setAnnouncementDraft(prev => ({ ...prev, enabled: e.target.checked }))}
+                />
+                Enable announcement
+              </label>
+            </div>
+
+            {/* FAQ */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm text-foreground">FAQ items</h3>
+                <button
+                  onClick={() => setFaqDraft(prev => [...prev, { q: '', a: '' }])}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add
+                </button>
+              </div>
+              {faqDraft.map((item, i) => (
+                <div key={i} className="p-3 rounded-xl bg-secondary space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Q{i + 1}</span>
+                    <button
+                      onClick={() => setFaqDraft(prev => prev.filter((_, j) => j !== i))}
+                      className="ml-auto p-1 rounded-lg text-red-400"
+                      aria-label="Remove"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <input
+                    value={item.q}
+                    onChange={e => setFaqDraft(prev => prev.map((x, j) => j === i ? { ...x, q: e.target.value } : x))}
+                    placeholder="Question"
+                    className="w-full px-3 py-2 rounded-xl bg-card text-sm text-foreground border-none outline-none"
+                  />
+                  <textarea
+                    value={item.a}
+                    onChange={e => setFaqDraft(prev => prev.map((x, j) => j === i ? { ...x, a: e.target.value } : x))}
+                    placeholder="Answer"
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-xl bg-card text-sm text-foreground border-none outline-none resize-y"
+                  />
+                </div>
+              ))}
+              {faqDraft.length === 0 && <p className="text-xs text-muted-foreground">No FAQ items yet</p>}
+            </div>
+
+            {/* Damu daily limit */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Damu chatbot daily limit</h3>
+              <p className="text-xs text-muted-foreground">Per user, per UTC day. Users see a cooldown timer when this is exceeded.</p>
+              <input
+                type="number"
+                min={1}
+                value={limitDraft}
+                onChange={e => setLimitDraft(parseInt(e.target.value || '0', 10))}
+                className="w-32 px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+              />
+            </div>
+
+            <button
+              onClick={saveHomepage}
+              disabled={savingHomepage}
+              className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-bold text-sm active:scale-[0.98] disabled:opacity-50 sticky bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)]"
+            >
+              {savingHomepage ? 'Saving…' : 'Save Homepage Settings'}
+            </button>
           </div>
         )}
       </div>
