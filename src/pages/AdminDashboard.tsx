@@ -716,6 +716,186 @@ export default function AdminDashboard() {
             })}
           </div>
         )}
+
+        {/* Analytics Tab */}
+        {tab === 'analytics' && (
+          <div className="space-y-4">
+            <div className="p-5 rounded-2xl bg-card">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Live now</p>
+              <p className="text-4xl font-bold text-foreground mt-1 flex items-center gap-2">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                {liveCount}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Active in the last 5 minutes</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm text-foreground">User activity</h3>
+                <div className="flex gap-1">
+                  {(['3h', '6h', '1d', '7d'] as const).map(r => (
+                    <button
+                      key={r}
+                      onClick={() => setActivityRange(r)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase ${activityRange === r ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={activityData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Line type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Homepage Tab */}
+        {tab === 'homepage' && (
+          <div className="space-y-4">
+            {/* Feature toggles */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Feature visibility</h3>
+              {([
+                ['chatbot', 'Damu Chatbot (floating)'],
+                ['faq', 'FAQ on home page'],
+                ['landing_faq', 'FAQ on login/landing page'],
+                ['notes_upload', 'My Notes upload page'],
+                ['announcement', 'Announcement banner'],
+              ] as const).map(([k, lbl]) => (
+                <label key={k} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary cursor-pointer">
+                  <span className="text-sm text-foreground font-bold">{lbl}</span>
+                  <input
+                    type="checkbox"
+                    checked={!!settings.feature_toggles?.[k]}
+                    onChange={() => toggleFeature(k)}
+                    className="w-5 h-5 accent-primary"
+                  />
+                </label>
+              ))}
+            </div>
+
+            {/* Hero */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Hero (login screen)</h3>
+              <input
+                value={heroDraft?.title ?? ''}
+                onChange={e => setHeroDraft(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Hero title"
+                className="w-full px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+              />
+              <textarea
+                value={heroDraft?.subtitle ?? ''}
+                onChange={e => setHeroDraft(prev => ({ ...prev, subtitle: e.target.value }))}
+                placeholder="Hero subtitle"
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none resize-y"
+              />
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={!!heroDraft?.enabled}
+                  onChange={e => setHeroDraft(prev => ({ ...prev, enabled: e.target.checked }))}
+                />
+                Show on login screen
+              </label>
+            </div>
+
+            {/* Announcement */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Announcement banner</h3>
+              <textarea
+                value={announcementDraft?.text ?? ''}
+                onChange={e => setAnnouncementDraft(prev => ({ ...prev, text: e.target.value }))}
+                placeholder="Short announcement text"
+                rows={2}
+                className="w-full px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none resize-y"
+              />
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={!!announcementDraft?.enabled}
+                  onChange={e => setAnnouncementDraft(prev => ({ ...prev, enabled: e.target.checked }))}
+                />
+                Enable announcement
+              </label>
+            </div>
+
+            {/* FAQ */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-sm text-foreground">FAQ items</h3>
+                <button
+                  onClick={() => setFaqDraft(prev => [...prev, { q: '', a: '' }])}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add
+                </button>
+              </div>
+              {faqDraft.map((item, i) => (
+                <div key={i} className="p-3 rounded-xl bg-secondary space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Q{i + 1}</span>
+                    <button
+                      onClick={() => setFaqDraft(prev => prev.filter((_, j) => j !== i))}
+                      className="ml-auto p-1 rounded-lg text-red-400"
+                      aria-label="Remove"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <input
+                    value={item.q}
+                    onChange={e => setFaqDraft(prev => prev.map((x, j) => j === i ? { ...x, q: e.target.value } : x))}
+                    placeholder="Question"
+                    className="w-full px-3 py-2 rounded-xl bg-card text-sm text-foreground border-none outline-none"
+                  />
+                  <textarea
+                    value={item.a}
+                    onChange={e => setFaqDraft(prev => prev.map((x, j) => j === i ? { ...x, a: e.target.value } : x))}
+                    placeholder="Answer"
+                    rows={3}
+                    className="w-full px-3 py-2 rounded-xl bg-card text-sm text-foreground border-none outline-none resize-y"
+                  />
+                </div>
+              ))}
+              {faqDraft.length === 0 && <p className="text-xs text-muted-foreground">No FAQ items yet</p>}
+            </div>
+
+            {/* Damu daily limit */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Damu chatbot daily limit</h3>
+              <p className="text-xs text-muted-foreground">Per user, per UTC day. Users see a cooldown timer when this is exceeded.</p>
+              <input
+                type="number"
+                min={1}
+                value={limitDraft}
+                onChange={e => setLimitDraft(parseInt(e.target.value || '0', 10))}
+                className="w-32 px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+              />
+            </div>
+
+            <button
+              onClick={saveHomepage}
+              disabled={savingHomepage}
+              className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-bold text-sm active:scale-[0.98] disabled:opacity-50 sticky bottom-[calc(4rem+env(safe-area-inset-bottom)+0.5rem)]"
+            >
+              {savingHomepage ? 'Saving…' : 'Save Homepage Settings'}
+            </button>
+          </div>
+        )}
       </div>
 
       <BottomNav />
