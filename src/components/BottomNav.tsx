@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth';
 import { useUiLayout } from '@/hooks/use-ui-layout';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
+import { useUnreadCount } from '@/hooks/use-unread-count';
 
 const ICON_MAP: Record<string, any> = {
   Home, MessageCircle, BookOpen, User, Shield,
@@ -23,6 +24,7 @@ export default function BottomNav() {
   const { user } = useAuth();
   const { bottomItems } = useUiLayout();
   const [isAdmin, setIsAdmin] = useState(false);
+  const unread = useUnreadCount();
 
   useEffect(() => {
     if (!user) return;
@@ -42,13 +44,21 @@ export default function BottomNav() {
           const path = PATH_MAP[item.key] || `/${item.key}`;
           const active = location.pathname.startsWith(path);
           const Icon = ICON_MAP[item.icon] || Home;
+          const showBadge = item.key === 'chat' && unread > 0;
           return (
             <button
               key={item.key}
               onClick={() => navigate(path)}
-              className="flex flex-col items-center gap-0.5 py-1.5 px-3 transition-all active:scale-[0.9]"
+              className="relative flex flex-col items-center gap-0.5 py-1.5 px-3 transition-all active:scale-[0.9]"
             >
-              <Icon className={`w-5 h-5 ${active ? 'text-foreground' : 'text-muted-foreground'}`} strokeWidth={active ? 2.5 : 1.5} />
+              <div className="relative">
+                <Icon className={`w-5 h-5 ${active ? 'text-foreground' : 'text-muted-foreground'}`} strokeWidth={active ? 2.5 : 1.5} />
+                {showBadge && (
+                  <span className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-background">
+                    {unread > 99 ? '99+' : unread}
+                  </span>
+                )}
+              </div>
               <span className={`text-[10px] ${active ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
                 {item.label}
               </span>
