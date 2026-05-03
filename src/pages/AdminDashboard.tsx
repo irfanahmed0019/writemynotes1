@@ -9,6 +9,7 @@ import type { LayoutItem } from '@/hooks/use-ui-layout';
 import { toast } from 'sonner';
 import { useAppSettings, updateAppSetting, type FaqItem } from '@/hooks/use-app-settings';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
+import { getOrCreateConversation } from '@/lib/conversations';
 
 type UserProfile = {
   user_id: string;
@@ -79,6 +80,7 @@ export default function AdminDashboard() {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [startingChatUserId, setStartingChatUserId] = useState<string | null>(null);
 
   // Study admin state
   const [studyConfig, setStudyConfig] = useState<any>(null);
@@ -301,6 +303,20 @@ export default function AdminDashboard() {
     toast(newBanned ? `${u.full_name || 'User'} banned` : `${u.full_name || 'User'} unbanned`);
   };
 
+  const messageUser = async (targetUserId: string) => {
+    if (!user || targetUserId === user.id || startingChatUserId) return;
+    setStartingChatUserId(targetUserId);
+    try {
+      const conversationId = await getOrCreateConversation(user.id, targetUserId);
+      navigate(`/chat/${conversationId}`);
+    } catch (error) {
+      console.error('admin messageUser error:', error);
+      toast.error('Could not start chat');
+    } finally {
+      setStartingChatUserId(null);
+    }
+  };
+
   const saveStudyConfig = async () => {
     if (!studyConfig) return;
     setStudySaving(true);
@@ -449,10 +465,20 @@ export default function AdminDashboard() {
                 Joined {formatDistanceToNow(new Date(u.created_at), { addSuffix: true })}
               </p>
             </div>
+            {u.user_id !== user.id && (
+              <button
+                onClick={() => messageUser(u.user_id)}
+                disabled={startingChatUserId === u.user_id}
+                className="p-2 rounded-xl bg-secondary text-secondary-foreground transition-all active:scale-95 disabled:opacity-50"
+                title="Message"
+              >
+                <MessageSquare className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={() => toggleBan(u)}
               className={`p-2 rounded-xl transition-all active:scale-95 ${
-                u.banned ? 'bg-green-500/10 text-green-400' : 'bg-red-400/10 text-red-400'
+                u.banned ? 'bg-secondary text-secondary-foreground' : 'bg-secondary text-destructive'
               }`}
               title={u.banned ? 'Unban' : 'Ban'}
             >
