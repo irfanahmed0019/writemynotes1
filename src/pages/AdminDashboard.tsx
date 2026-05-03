@@ -38,7 +38,7 @@ type ConversationItem = {
   buyer_id: string;
   seller_id: string;
   created_at: string;
-  request_id: string;
+  request_id: string | null;
   buyer_profile?: { full_name: string | null } | null;
   seller_profile?: { full_name: string | null } | null;
   last_message?: string;
