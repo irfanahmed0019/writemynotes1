@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, Loader2, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import ImagePreview from '@/components/ImagePreview';
+import { getOrCreateConversation } from '@/lib/conversations';
 
 type ProfileData = {
   full_name: string | null;
@@ -47,87 +48,8 @@ export default function WriterProfile() {
     if (!user || !userId || userId === user.id) return;
     setMessaging(true);
     try {
-      // Check existing conversations in both directions
-      const { data: existingList } = await supabase
-        .from('conversations')
-        .select('id')
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`);
-
-      const existing = existingList?.find(c => true); // filtered by both .or() clauses
-      
-      // More reliable: query both directions separately
-      const { data: conv1 } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('buyer_id', user.id)
-        .eq('seller_id', userId)
-        .limit(1)
-        .maybeSingle();
-
-      if (conv1) { navigate(`/chat/${conv1.id}`); return; }
-
-      const { data: conv2 } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('buyer_id', userId)
-        .eq('seller_id', user.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (conv2) { navigate(`/chat/${conv2.id}`); return; }
-
-      // Find a request_id — check interests by both users, then any request
-      let requestId: string | null = null;
-
-      const { data: interest1 } = await supabase
-        .from('post_interests')
-        .select('request_id')
-        .eq('writer_id', userId)
-        .limit(1)
-        .maybeSingle();
-
-      if (interest1) {
-        requestId = interest1.request_id;
-      } else {
-        const { data: interest2 } = await supabase
-          .from('post_interests')
-          .select('request_id')
-          .eq('writer_id', user.id)
-          .limit(1)
-          .maybeSingle();
-
-        if (interest2) {
-          requestId = interest2.request_id;
-        }
-      }
-
-      if (!requestId) {
-        // Fallback: find any request by either user
-        const { data: req1 } = await supabase.from('requests').select('id').eq('user_id', userId).limit(1).maybeSingle();
-        if (req1) {
-          requestId = req1.id;
-        } else {
-          const { data: req2 } = await supabase.from('requests').select('id').eq('user_id', user.id).limit(1).maybeSingle();
-          if (req2) requestId = req2.id;
-        }
-      }
-
-      if (!requestId) {
-        toast.error('No linked request found');
-        setMessaging(false);
-        return;
-      }
-
-      // RLS requires auth.uid() = seller_id, so current user must be seller
-      const { data: convo, error } = await supabase
-        .from('conversations')
-        .insert({ seller_id: user.id, buyer_id: userId, request_id: requestId })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-      navigate(`/chat/${convo.id}`);
+      const conversationId = await getOrCreateConversation(user.id, userId);
+      navigate(`/chat/${conversationId}`);
     } catch (err) {
       console.error('handleMessage error:', err);
       toast.error('Could not start conversation');
