@@ -40,21 +40,21 @@ export type Database = {
           buyer_id: string
           created_at: string
           id: string
-          request_id: string
+          request_id: string | null
           seller_id: string
         }
         Insert: {
           buyer_id: string
           created_at?: string
           id?: string
-          request_id: string
+          request_id?: string | null
           seller_id: string
         }
         Update: {
           buyer_id?: string
           created_at?: string
           id?: string
-          request_id?: string
+          request_id?: string | null
           seller_id?: string
         }
         Relationships: [
