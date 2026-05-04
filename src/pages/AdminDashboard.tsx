@@ -225,11 +225,41 @@ export default function AdminDashboard() {
       const fetchAnalytics = async () => {
         // Live = active in last 5 minutes
         const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        const { count } = await supabase
+        const { data: liveRows, count } = await supabase
           .from('user_presence' as any)
-          .select('user_id', { count: 'exact', head: true })
-          .gte('last_seen', fiveMinAgo);
+          .select('user_id, last_seen', { count: 'exact' })
+          .gte('last_seen', fiveMinAgo)
+          .order('last_seen', { ascending: false })
+          .limit(50);
         setLiveCount(count ?? 0);
+
+        const liveIds = (liveRows as any[] | null)?.map(r => r.user_id) ?? [];
+        let nameMap: Record<string, string> = {};
+        if (liveIds.length) {
+          const { data: profs } = await supabase
+            .from('profiles').select('user_id, full_name').in('user_id', liveIds);
+          profs?.forEach((p: any) => { nameMap[p.user_id] = p.full_name || 'Anonymous'; });
+        }
+        setLiveUsers((liveRows as any[] | null)?.map(r => ({
+          user_id: r.user_id,
+          name: nameMap[r.user_id] || 'Anonymous',
+          last_seen: r.last_seen,
+        })) ?? []);
+
+        // Totals
+        const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+        const [u, p, m, t] = await Promise.all([
+          supabase.from('profiles').select('user_id', { count: 'exact', head: true }),
+          supabase.from('requests').select('id', { count: 'exact', head: true }),
+          supabase.from('messages').select('id', { count: 'exact', head: true }),
+          supabase.from('user_presence' as any).select('user_id', { count: 'exact', head: true }).gte('last_seen', startOfDay.toISOString()),
+        ]);
+        setTotals({
+          users: u.count ?? 0,
+          posts: p.count ?? 0,
+          messages: m.count ?? 0,
+          today: t.count ?? 0,
+        });
 
         const ranges = { '3h': 3, '6h': 6, '1d': 24, '7d': 24 * 7 };
         const hours = ranges[activityRange];
