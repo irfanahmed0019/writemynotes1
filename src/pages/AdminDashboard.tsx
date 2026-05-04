@@ -61,6 +61,8 @@ export default function AdminDashboard() {
   const [liveCount, setLiveCount] = useState<number>(0);
   const [activityRange, setActivityRange] = useState<'3h' | '6h' | '1d' | '7d'>('1d');
   const [activityData, setActivityData] = useState<{ time: string; users: number }[]>([]);
+  const [liveUsers, setLiveUsers] = useState<{ user_id: string; name: string; last_seen: string }[]>([]);
+  const [totals, setTotals] = useState<{ users: number; posts: number; messages: number; today: number }>({ users: 0, posts: 0, messages: 0, today: 0 });
 
   // Homepage editor draft
   const [heroDraft, setHeroDraft] = useState(settings.hero);
@@ -223,11 +225,41 @@ export default function AdminDashboard() {
       const fetchAnalytics = async () => {
         // Live = active in last 5 minutes
         const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        const { count } = await supabase
+        const { data: liveRows, count } = await supabase
           .from('user_presence' as any)
-          .select('user_id', { count: 'exact', head: true })
-          .gte('last_seen', fiveMinAgo);
+          .select('user_id, last_seen', { count: 'exact' })
+          .gte('last_seen', fiveMinAgo)
+          .order('last_seen', { ascending: false })
+          .limit(50);
         setLiveCount(count ?? 0);
+
+        const liveIds = (liveRows as any[] | null)?.map(r => r.user_id) ?? [];
+        let nameMap: Record<string, string> = {};
+        if (liveIds.length) {
+          const { data: profs } = await supabase
+            .from('profiles').select('user_id, full_name').in('user_id', liveIds);
+          profs?.forEach((p: any) => { nameMap[p.user_id] = p.full_name || 'Anonymous'; });
+        }
+        setLiveUsers((liveRows as any[] | null)?.map(r => ({
+          user_id: r.user_id,
+          name: nameMap[r.user_id] || 'Anonymous',
+          last_seen: r.last_seen,
+        })) ?? []);
+
+        // Totals
+        const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+        const [u, p, m, t] = await Promise.all([
+          supabase.from('profiles').select('user_id', { count: 'exact', head: true }),
+          supabase.from('requests').select('id', { count: 'exact', head: true }),
+          supabase.from('messages').select('id', { count: 'exact', head: true }),
+          supabase.from('user_presence' as any).select('user_id', { count: 'exact', head: true }).gte('last_seen', startOfDay.toISOString()),
+        ]);
+        setTotals({
+          users: u.count ?? 0,
+          posts: p.count ?? 0,
+          messages: m.count ?? 0,
+          today: t.count ?? 0,
+        });
 
         const ranges = { '3h': 3, '6h': 6, '1d': 24, '7d': 24 * 7 };
         const hours = ranges[activityRange];
@@ -740,13 +772,51 @@ export default function AdminDashboard() {
         {/* Analytics Tab */}
         {tab === 'analytics' && (
           <div className="space-y-4">
-            <div className="p-5 rounded-2xl bg-card">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Live now</p>
-              <p className="text-4xl font-bold text-foreground mt-1 flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                {liveCount}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Active in the last 5 minutes</p>
+            {/* Stat grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Live now</p>
+                <p className="text-3xl font-bold text-foreground mt-1 flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  {liveCount}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">Last 5 min</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Active today</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{totals.today}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Unique visitors</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total users</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{totals.users}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Signed up</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total posts</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{totals.posts}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">{totals.messages} messages</p>
+              </div>
+            </div>
+
+            {/* Live users list */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                Who's online ({liveUsers.length})
+              </h3>
+              {liveUsers.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No one's active right now.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {liveUsers.map(u => (
+                    <span key={u.user_id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-xs text-foreground">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+                      {u.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="p-4 rounded-2xl bg-card space-y-3">
