@@ -61,6 +61,8 @@ export default function AdminDashboard() {
   const [liveCount, setLiveCount] = useState<number>(0);
   const [activityRange, setActivityRange] = useState<'3h' | '6h' | '1d' | '7d'>('1d');
   const [activityData, setActivityData] = useState<{ time: string; users: number }[]>([]);
+  const [liveUsers, setLiveUsers] = useState<{ user_id: string; name: string; last_seen: string }[]>([]);
+  const [totals, setTotals] = useState<{ users: number; posts: number; messages: number; today: number }>({ users: 0, posts: 0, messages: 0, today: 0 });
 
   // Homepage editor draft
   const [heroDraft, setHeroDraft] = useState(settings.hero);
