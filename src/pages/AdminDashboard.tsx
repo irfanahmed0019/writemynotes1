@@ -772,13 +772,51 @@ export default function AdminDashboard() {
         {/* Analytics Tab */}
         {tab === 'analytics' && (
           <div className="space-y-4">
-            <div className="p-5 rounded-2xl bg-card">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Live now</p>
-              <p className="text-4xl font-bold text-foreground mt-1 flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                {liveCount}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Active in the last 5 minutes</p>
+            {/* Stat grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Live now</p>
+                <p className="text-3xl font-bold text-foreground mt-1 flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  {liveCount}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">Last 5 min</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Active today</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{totals.today}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Unique visitors</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total users</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{totals.users}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Signed up</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-card">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total posts</p>
+                <p className="text-3xl font-bold text-foreground mt-1">{totals.posts}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">{totals.messages} messages</p>
+              </div>
+            </div>
+
+            {/* Live users list */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                Who's online ({liveUsers.length})
+              </h3>
+              {liveUsers.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No one's active right now.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {liveUsers.map(u => (
+                    <span key={u.user_id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary text-xs text-foreground">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+                      {u.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="p-4 rounded-2xl bg-card space-y-3">
