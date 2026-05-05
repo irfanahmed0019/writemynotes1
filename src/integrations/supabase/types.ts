@@ -123,6 +123,35 @@ export type Database = {
           },
         ]
       }
+      note_votes: {
+        Row: {
+          created_at: string
+          id: string
+          note_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_votes_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "user_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_interests: {
         Row: {
           created_at: string
@@ -341,9 +370,11 @@ export type Database = {
           content: string | null
           content_type: string
           created_at: string
+          description: string | null
           file_url: string | null
           id: string
           is_public: boolean
+          subject: string | null
           title: string
           updated_at: string
           user_id: string
@@ -352,9 +383,11 @@ export type Database = {
           content?: string | null
           content_type?: string
           created_at?: string
+          description?: string | null
           file_url?: string | null
           id?: string
           is_public?: boolean
+          subject?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -363,9 +396,11 @@ export type Database = {
           content?: string | null
           content_type?: string
           created_at?: string
+          description?: string | null
           file_url?: string | null
           id?: string
           is_public?: boolean
+          subject?: string | null
           title?: string
           updated_at?: string
           user_id?: string
