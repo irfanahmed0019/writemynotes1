@@ -69,6 +69,8 @@ export default function AdminDashboard() {
   const [announcementDraft, setAnnouncementDraft] = useState(settings.announcement);
   const [faqDraft, setFaqDraft] = useState<FaqItem[]>(settings.faq?.items ?? []);
   const [limitDraft, setLimitDraft] = useState<number>(settings.damu_daily_limit?.limit ?? 30);
+  const [subjectsDraft, setSubjectsDraft] = useState<string[]>(settings.note_subjects?.items ?? []);
+  const [newSubjectName, setNewSubjectName] = useState('');
   const [savingHomepage, setSavingHomepage] = useState(false);
 
   useEffect(() => {
@@ -76,6 +78,7 @@ export default function AdminDashboard() {
     setAnnouncementDraft(settings.announcement);
     setFaqDraft(settings.faq?.items ?? []);
     setLimitDraft(settings.damu_daily_limit?.limit ?? 30);
+    setSubjectsDraft(settings.note_subjects?.items ?? []);
   }, [settings]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [posts, setPosts] = useState<RequestItem[]>([]);
@@ -439,6 +442,7 @@ export default function AdminDashboard() {
       updateAppSetting('announcement', announcementDraft),
       updateAppSetting('faq', { ...settings.faq, items: faqDraft }),
       updateAppSetting('damu_daily_limit', { limit: Math.max(1, limitDraft) }),
+      updateAppSetting('note_subjects', { items: subjectsDraft.filter(s => s.trim()).map(s => s.trim()) }),
     ]);
     setSavingHomepage(false);
     if (errs.some(Boolean)) toast.error('Some changes failed to save');
