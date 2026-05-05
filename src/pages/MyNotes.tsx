@@ -24,12 +24,12 @@ type Note = {
   author_name?: string;
 };
 
-const SUBJECTS = ['All', 'Math', 'Physics', 'Chemistry', 'Biology', 'CS', 'English', 'Other'];
-
 export default function MyNotes() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { settings } = useAppSettings();
+  const adminSubjects = settings.note_subjects?.items ?? [];
+  const SUBJECTS = ['All', ...adminSubjects];
   const [notes, setNotes] = useState<Note[]>([]);
   const [view, setView] = useState<'list' | 'compose' | 'reading'>('list');
   const [readingNote, setReadingNote] = useState<Note | null>(null);
