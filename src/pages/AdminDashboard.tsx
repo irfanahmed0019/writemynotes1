@@ -69,6 +69,8 @@ export default function AdminDashboard() {
   const [announcementDraft, setAnnouncementDraft] = useState(settings.announcement);
   const [faqDraft, setFaqDraft] = useState<FaqItem[]>(settings.faq?.items ?? []);
   const [limitDraft, setLimitDraft] = useState<number>(settings.damu_daily_limit?.limit ?? 30);
+  const [subjectsDraft, setSubjectsDraft] = useState<string[]>(settings.note_subjects?.items ?? []);
+  const [newSubjectName, setNewSubjectName] = useState('');
   const [savingHomepage, setSavingHomepage] = useState(false);
 
   useEffect(() => {
@@ -76,6 +78,7 @@ export default function AdminDashboard() {
     setAnnouncementDraft(settings.announcement);
     setFaqDraft(settings.faq?.items ?? []);
     setLimitDraft(settings.damu_daily_limit?.limit ?? 30);
+    setSubjectsDraft(settings.note_subjects?.items ?? []);
   }, [settings]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [posts, setPosts] = useState<RequestItem[]>([]);
@@ -439,6 +442,7 @@ export default function AdminDashboard() {
       updateAppSetting('announcement', announcementDraft),
       updateAppSetting('faq', { ...settings.faq, items: faqDraft }),
       updateAppSetting('damu_daily_limit', { limit: Math.max(1, limitDraft) }),
+      updateAppSetting('note_subjects', { items: subjectsDraft.filter(s => s.trim()).map(s => s.trim()) }),
     ]);
     setSavingHomepage(false);
     if (errs.some(Boolean)) toast.error('Some changes failed to save');
@@ -975,6 +979,49 @@ export default function AdminDashboard() {
                 onChange={e => setLimitDraft(parseInt(e.target.value || '0', 10))}
                 className="w-32 px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
               />
+            </div>
+
+            {/* Note subjects */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Note subjects</h3>
+              <p className="text-xs text-muted-foreground">Subjects available when users create notes.</p>
+              <div className="space-y-2">
+                {subjectsDraft.map((s, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input
+                      value={s}
+                      onChange={e => setSubjectsDraft(prev => prev.map((x, idx) => idx === i ? e.target.value : x))}
+                      className="flex-1 px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+                    />
+                    <button
+                      onClick={() => setSubjectsDraft(prev => prev.filter((_, idx) => idx !== i))}
+                      className="px-3 rounded-xl bg-red-400/10 text-red-400 text-xs font-bold active:scale-95"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newSubjectName}
+                  onChange={e => setNewSubjectName(e.target.value)}
+                  placeholder="Add subject (e.g. History)"
+                  className="flex-1 px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+                />
+                <button
+                  onClick={() => {
+                    const v = newSubjectName.trim();
+                    if (!v) return;
+                    if (subjectsDraft.includes(v)) { toast('Already in list'); return; }
+                    setSubjectsDraft(prev => [...prev, v]);
+                    setNewSubjectName('');
+                  }}
+                  className="px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold active:scale-95"
+                >
+                  Add
+                </button>
+              </div>
             </div>
 
             <button

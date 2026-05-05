@@ -15,6 +15,7 @@ export type AppSettings = {
     chatbot: boolean;
   };
   featured_notes: { ids: string[] };
+  note_subjects: { items: string[] };
 };
 
 const DEFAULTS: AppSettings = {
@@ -24,6 +25,7 @@ const DEFAULTS: AppSettings = {
   faq: { enabled: true, items: [] },
   feature_toggles: { faq: true, notes_upload: true, landing_faq: true, announcement: false, chatbot: true },
   featured_notes: { ids: [] },
+  note_subjects: { items: ['Math', 'Physics', 'Chemistry', 'Biology', 'CS', 'English', 'Other'] },
 };
 
 export function useAppSettings() {
