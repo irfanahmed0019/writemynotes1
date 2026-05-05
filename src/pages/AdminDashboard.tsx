@@ -981,6 +981,49 @@ export default function AdminDashboard() {
               />
             </div>
 
+            {/* Note subjects */}
+            <div className="p-4 rounded-2xl bg-card space-y-3">
+              <h3 className="font-bold text-sm text-foreground">Note subjects</h3>
+              <p className="text-xs text-muted-foreground">Subjects available when users create notes.</p>
+              <div className="space-y-2">
+                {subjectsDraft.map((s, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input
+                      value={s}
+                      onChange={e => setSubjectsDraft(prev => prev.map((x, idx) => idx === i ? e.target.value : x))}
+                      className="flex-1 px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+                    />
+                    <button
+                      onClick={() => setSubjectsDraft(prev => prev.filter((_, idx) => idx !== i))}
+                      className="px-3 rounded-xl bg-red-400/10 text-red-400 text-xs font-bold active:scale-95"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newSubjectName}
+                  onChange={e => setNewSubjectName(e.target.value)}
+                  placeholder="Add subject (e.g. History)"
+                  className="flex-1 px-3 py-2 rounded-xl bg-secondary text-sm text-foreground border-none outline-none"
+                />
+                <button
+                  onClick={() => {
+                    const v = newSubjectName.trim();
+                    if (!v) return;
+                    if (subjectsDraft.includes(v)) { toast('Already in list'); return; }
+                    setSubjectsDraft(prev => [...prev, v]);
+                    setNewSubjectName('');
+                  }}
+                  className="px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold active:scale-95"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
             <button
               onClick={saveHomepage}
               disabled={savingHomepage}
