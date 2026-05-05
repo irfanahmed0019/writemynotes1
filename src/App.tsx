@@ -22,6 +22,7 @@ import MessagePopup from "./components/MessagePopup";
 import DamuChatbot from "./components/DamuChatbot";
 import { Loader2 } from "lucide-react";
 import { usePresenceHeartbeat } from "./hooks/use-presence";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Analytics />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
