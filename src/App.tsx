@@ -22,6 +22,7 @@ import MessagePopup from "./components/MessagePopup";
 import DamuChatbot from "./components/DamuChatbot";
 import { Loader2 } from "lucide-react";
 import { usePresenceHeartbeat } from "./hooks/use-presence";
+import { useDeliveryReceipts } from "./hooks/use-delivery-receipts";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ function RootRedirect() {
 
 function PresenceTracker() {
   usePresenceHeartbeat();
+  useDeliveryReceipts();
   return null;
 }
 
