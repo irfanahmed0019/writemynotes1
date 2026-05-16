@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { ArrowLeft, Send, Plus, Camera, Image as ImageIcon, FileText, X, Download, Check, CheckCheck } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import TypingIndicator from '@/components/TypingIndicator';
 import { toast } from 'sonner';
 import { compressImage } from '@/lib/compress';
@@ -14,6 +14,7 @@ type Message = {
   content: string;
   created_at: string;
   read_at: string | null;
+  delivered_at?: string | null;
   attachment_url?: string | null;
   attachment_type?: string | null;
 };
@@ -25,6 +26,8 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [otherName, setOtherName] = useState('');
+  const [otherId, setOtherId] = useState<string | null>(null);
+  const [otherLastSeen, setOtherLastSeen] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const [attachMenu, setAttachMenu] = useState(false);
@@ -66,9 +69,12 @@ export default function Chat() {
         .eq('id', id)
         .single();
       if (convo) {
-        const otherId = convo.buyer_id === user.id ? convo.seller_id : convo.buyer_id;
-        const { data: profile } = await supabase.from('profiles').select('full_name').eq('user_id', otherId).single();
+        const oid = convo.buyer_id === user.id ? convo.seller_id : convo.buyer_id;
+        setOtherId(oid);
+        const { data: profile } = await supabase.from('profiles').select('full_name').eq('user_id', oid).single();
         setOtherName(profile?.full_name || 'Unknown');
+        const { data: pres } = await supabase.from('user_presence' as any).select('last_seen').eq('user_id', oid).maybeSingle();
+        setOtherLastSeen((pres as any)?.last_seen ?? null);
       }
     };
 
@@ -117,6 +123,21 @@ export default function Chat() {
       presenceChannelRef.current = null;
     };
   }, [user, id, markAsRead]);
+
+  // Poll peer presence every 20s for online/last-seen header
+  useEffect(() => {
+    if (!otherId) return;
+    let cancelled = false;
+    const pull = async () => {
+      const { data } = await supabase.from('user_presence' as any).select('last_seen').eq('user_id', otherId).maybeSingle();
+      if (!cancelled) setOtherLastSeen((data as any)?.last_seen ?? null);
+    };
+    pull();
+    const t = setInterval(pull, 20_000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [otherId]);
+
+  const isOnline = !!otherLastSeen && (Date.now() - new Date(otherLastSeen).getTime() < 90_000);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -204,7 +225,13 @@ export default function Chat() {
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-foreground text-[15px] truncate leading-tight">{otherName}</p>
           <p className="text-[11px] text-muted-foreground leading-tight">
-            {otherTyping ? <span className="text-foreground">typing…</span> : 'online'}
+            {otherTyping
+              ? <span className="text-foreground">typing…</span>
+              : isOnline
+                ? <span className="text-foreground">online</span>
+                : otherLastSeen
+                  ? `last seen ${formatDistanceToNow(new Date(otherLastSeen), { addSuffix: true })}`
+                  : 'offline'}
           </p>
         </div>
       </div>
@@ -247,8 +274,10 @@ export default function Chat() {
                   </span>
                   {isMine && (
                     isRead
-                      ? <CheckCheck className="w-3.5 h-3.5 text-primary-foreground/80" />
-                      : <Check className="w-3.5 h-3.5 text-primary-foreground/50" />
+                      ? <CheckCheck className="w-4 h-4 text-sky-400" strokeWidth={2.5} />
+                      : m.delivered_at
+                        ? <CheckCheck className="w-4 h-4 text-primary-foreground/70" strokeWidth={2.5} />
+                        : <Check className="w-3.5 h-3.5 text-primary-foreground/50" strokeWidth={2.5} />
                   )}
                 </div>
               </div>
