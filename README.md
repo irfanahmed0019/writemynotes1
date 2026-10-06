@@ -4,6 +4,12 @@ WriteMyNotes is a college-focused freelance marketplace that connects students w
 
 The platform is designed to make academic outsourcing faster, simpler, and more reliable without depending on chaotic WhatsApp groups or middlemen.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/writemynotes-desktop.png" alt="WriteMyNotes on desktop" width="80%">
+</p>
+
 ## Live Platform
 
 ### Official Website
