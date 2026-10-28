@@ -46,7 +46,7 @@ export default function Install() {
             Install WriteMyNotes
           </h1>
           <p className="text-[#666] text-sm">
-            Get the full app experience — faster loading, works offline, and sits right on your home screen.
+            Get the full app experience - faster loading, works offline, and sits right on your home screen.
           </p>
         </div>
 

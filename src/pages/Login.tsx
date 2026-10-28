@@ -35,7 +35,7 @@ export default function Login() {
       setError(error.message);
       setSigningIn(false);
     }
-    // On success Supabase redirects the browser — no further action needed
+    // On success Supabase redirects the browser - no further action needed
   };
 
   return (

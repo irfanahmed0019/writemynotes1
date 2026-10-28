@@ -214,7 +214,7 @@ export default function Chat() {
 
   return (
     <div className="h-[100dvh] flex flex-col bg-background">
-      {/* Header — WhatsApp style */}
+      {/* Header - WhatsApp style */}
       <div className="shrink-0 bg-card border-b border-border px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2.5 flex items-center gap-2">
         <button onClick={() => navigate('/chats')} className="p-2 rounded-full active:bg-secondary">
           <ArrowLeft className="w-5 h-5 text-foreground" />

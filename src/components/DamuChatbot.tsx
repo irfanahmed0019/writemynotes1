@@ -236,7 +236,7 @@ export default function DamuChatbot() {
       }
     } catch (e) {
       console.error('Damu chat error:', e);
-      // Don't append a bot bubble for cooldown — the dedicated UI handles it
+      // Don't append a bot bubble for cooldown - the dedicated UI handles it
       if (!cooldown) {
         const fallbackMessage = e instanceof Error && e.message
           ? e.message
@@ -395,7 +395,7 @@ export default function DamuChatbot() {
                       sendMessage();
                     }
                   }}
-                  placeholder={cooldownActive ? 'Limit reached — see timer above' : 'Message Damu...'}
+                  placeholder={cooldownActive ? 'Limit reached - see timer above' : 'Message Damu...'}
                   rows={1}
                   disabled={cooldownActive}
                   className="flex-1 bg-transparent text-foreground text-sm placeholder:text-muted-foreground border-none outline-none resize-none py-1.5"

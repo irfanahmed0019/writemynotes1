@@ -218,9 +218,9 @@ export default function PostDetail() {
                 myInterest.status === 'rejected' ? 'text-red-400' :
                 'text-[#888]'
               }`}>
-                {myInterest.status === 'approved' ? '✅ Approved — Check your chats!' :
+                {myInterest.status === 'approved' ? 'Approved. Check your chats' :
                  myInterest.status === 'rejected' ? '❌ Interest was declined' :
-                 '⏳ Interest sent — Waiting for approval'}
+                 'Interest sent. Waiting for approval'}
               </div>
             ) : (
               <button

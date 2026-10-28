@@ -63,7 +63,7 @@ export default function PostRequest() {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Physics lab record — Unit 3"
+            placeholder="e.g. Physics lab record - Unit 3"
             className="w-full h-12 px-4 rounded-xl bg-[#111] text-white placeholder:text-[#444] text-sm border-none outline-none focus:ring-1 focus:ring-[#333]"
           />
         </div>
